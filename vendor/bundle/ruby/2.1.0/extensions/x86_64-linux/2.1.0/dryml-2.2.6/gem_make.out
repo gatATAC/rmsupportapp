@@ -1,0 +1,3 @@
+/usr/bin/ruby2.1 mkrf_conf.rb 
+
+/usr/bin/ruby2.1 -rubygems /home/est/dev/gatatac/redmine/rmsupport/vendor/bundle/ruby/2.1.0/gems/rake-12.0.0/exe/rake RUBYARCHDIR=/home/est/dev/gatatac/redmine/rmsupport/vendor/bundle/ruby/2.1.0/extensions/x86_64-linux/2.1.0/dryml-2.2.6 RUBYLIBDIR=/home/est/dev/gatatac/redmine/rmsupport/vendor/bundle/ruby/2.1.0/extensions/x86_64-linux/2.1.0/dryml-2.2.6
