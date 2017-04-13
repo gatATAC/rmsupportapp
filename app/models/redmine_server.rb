@@ -14,8 +14,9 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_users, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_trackers, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_issue_statuses, :dependent => :destroy, :inverse_of => :redmine_server
   
-  children :redmine_users, :redmine_projects, :redmine_trackers
+  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -120,6 +121,37 @@ class RedmineServer < ActiveRecord::Base
           end
           rm_tracker.name = tracker.name
           rm_tracker.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
+
+  def reload_issue_statuses
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_issue_statuses
+    statuses = RedmineRest::Models::IssueStatus.all
+    if (statuses != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo statuses = "+statuses.size.to_s)
+      if (statuses.size > 0) then
+        print("\ntengo statuses = "+statuses.size.to_s)
+        statuses.each do |status|
+          print("\ntrato el status "+status.id.to_s)
+          rm_issue_status = self.redmine_issue_statuses.find_by_rmid(status.id)
+          if (not(rm_issue_status)) then
+            rm_issue_status = RedmineIssueStatus.new
+            rm_issue_status.rmid = status.id
+            rm_issue_status.redmine_server = self
+          else
+            extra.delete(rm_issue_status)
+          end
+          rm_issue_status.name = status.name
+          rm_issue_status.save
         end
       end
     end
