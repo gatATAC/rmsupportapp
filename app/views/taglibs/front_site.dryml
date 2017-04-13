@@ -18,6 +18,7 @@
     <old-show-page merge>
         <prepend-collection-section:>
             <ul>
+                <li><%= link_to("Reload Trackers", [@redmine_server, :action => :reload_trackers , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Users", [@redmine_server, :action => :reload_users , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Projects", [@redmine_server, :action => :reload_projects , :only_path => :true], :method => :post) %></li>
             </ul>

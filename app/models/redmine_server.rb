@@ -13,8 +13,9 @@ class RedmineServer < ActiveRecord::Base
 
   has_many :redmine_users, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_trackers, :dependent => :destroy, :inverse_of => :redmine_server
   
-  children :redmine_users, :redmine_projects
+  children :redmine_users, :redmine_projects, :redmine_trackers
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -96,6 +97,38 @@ class RedmineServer < ActiveRecord::Base
       irm.delete
     }
   end
+
+  def reload_trackers
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_trackers
+    trackers = RedmineRest::Models::Tracker.all
+    if (trackers != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo trackers = "+trackers.size.to_s)
+      if (trackers.size > 0) then
+        print("\ntengo trackers = "+trackers.size.to_s)
+        trackers.each do |tracker|
+          print("\ntrato el tracker "+tracker.id.to_s)
+          rm_tracker = self.redmine_trackers.find_by_rmid(tracker.id)
+          if (not(rm_tracker)) then
+            rm_tracker = RedmineTracker.new
+            rm_tracker.rmid = tracker.id
+            rm_tracker.redmine_server = self
+          else
+            extra.delete(rm_tracker)
+          end
+          rm_tracker.name = tracker.name
+          rm_tracker.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
+
   # --- Permissions --- #
 
   def create_permitted?

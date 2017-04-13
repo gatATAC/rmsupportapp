@@ -1,0 +1,2 @@
+module RedmineTrackersHelper
+end
