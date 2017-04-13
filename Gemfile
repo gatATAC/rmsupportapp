@@ -57,3 +57,18 @@ gem 'hobo_clean', '2.2.6'
 gem 'hobo_jquery_ui', '2.2.6'
 gem 'jquery-ui-themes', '~> 0.0.4'
 gem 'hobo_clean_admin', '2.2.6'
+
+####### Project dependent gems
+
+gem 'acts_as_list'
+gem 'roo'
+gem 'redmine_rest'
+gem 'activeresource'
+
+######## To dump database
+gem 'yaml_db'
+
+######## Databases ############
+group :production do
+#  gem 'mysql2'
+end

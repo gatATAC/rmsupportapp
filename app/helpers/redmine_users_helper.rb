@@ -1,0 +1,2 @@
+module RedmineUsersHelper
+end

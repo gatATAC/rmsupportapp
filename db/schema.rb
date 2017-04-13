@@ -11,7 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170413125747) do
+ActiveRecord::Schema.define(version: 20170413140502) do
+
+  create_table "redmine_servers", force: :cascade do |t|
+    t.string   "name"
+    t.string   "url"
+    t.string   "admin_api_key"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "redmine_users", force: :cascade do |t|
+    t.string   "name"
+    t.string   "apikey"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_server_id"
+  end
+
+  add_index "redmine_users", ["redmine_server_id"], name: "index_redmine_users_on_redmine_server_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "crypted_password",          limit: 40

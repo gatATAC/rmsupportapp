@@ -1,0 +1,2 @@
+module RedmineServersHelper
+end
