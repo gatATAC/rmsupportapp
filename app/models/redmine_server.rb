@@ -15,8 +15,9 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_trackers, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_issue_statuses, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
   
-  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses
+  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses, :redmine_roles
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -121,6 +122,37 @@ class RedmineServer < ActiveRecord::Base
           end
           rm_tracker.name = tracker.name
           rm_tracker.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
+
+  def reload_roles
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_roles
+    roles = RedmineRest::Models::Role.all
+    if (roles != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo roles = "+roles.size.to_s)
+      if (roles.size > 0) then
+        print("\ntengo roles = "+roles.size.to_s)
+        roles.each do |rol|
+          print("\ntrato el rol "+rol.id.to_s)
+          rm_rol = self.redmine_roles.find_by_rmid(rol.id)
+          if (not(rm_rol)) then
+            rm_rol = RedmineRole.new
+            rm_rol.rmid = rol.id
+            rm_rol.redmine_server = self
+          else
+            extra.delete(rm_rol)
+          end
+          rm_rol.name = rol.name
+          rm_rol.save
         end
       end
     end
