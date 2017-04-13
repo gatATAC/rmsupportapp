@@ -10,6 +10,7 @@ class RedmineServersController < ApplicationController
   web_method :reload_issue_statuses
   web_method :reload_roles
   web_method :reload_groups
+  web_method :reload_issue_priorities
   
   def reload_users
     @redmine_server = find_instance
@@ -38,6 +39,12 @@ class RedmineServersController < ApplicationController
   def reload_issue_statuses
     @redmine_server = find_instance
     @redmine_server.reload_issue_statuses
+    redirect_to this    
+  end
+  
+  def reload_issue_priorities
+    @redmine_server = find_instance
+    @redmine_server.reload_issue_priorities
     redirect_to this    
   end
   

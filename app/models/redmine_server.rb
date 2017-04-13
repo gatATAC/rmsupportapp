@@ -15,11 +15,12 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_trackers, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_issue_statuses, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_issue_priorities, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
   
   children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses, 
-    :redmine_roles, :redmine_groups
+    :redmine_roles, :redmine_groups, :redmine_issue_priorities
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -217,6 +218,37 @@ class RedmineServer < ActiveRecord::Base
           end
           rm_issue_status.name = status.name
           rm_issue_status.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
+
+  def reload_issue_priorities
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_issue_priorities
+    priorities = RedmineRest::Models::IssuePriority.all
+    if (priorities != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo priorities = "+priorities.size.to_s)
+      if (priorities.size > 0) then
+        print("\ntengo priorities = "+priorities.size.to_s)
+        priorities.each do |priority|
+          print("\ntrato la priority "+priority.id.to_s)
+          rm_issue_priority = self.redmine_issue_priorities.find_by_rmid(priority.id)
+          if (not(rm_issue_priority)) then
+            rm_issue_priority = RedmineIssuePriority.new
+            rm_issue_priority.rmid = priority.id
+            rm_issue_priority.redmine_server = self
+          else
+            extra.delete(rm_issue_priority)
+          end
+          rm_issue_priority.name = priority.name
+          rm_issue_priority.save
         end
       end
     end

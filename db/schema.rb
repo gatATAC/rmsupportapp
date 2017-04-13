@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170413170104) do
+ActiveRecord::Schema.define(version: 20170413175041) do
 
   create_table "redmine_groups", force: :cascade do |t|
     t.string   "name"
@@ -23,6 +23,16 @@ ActiveRecord::Schema.define(version: 20170413170104) do
 
   add_index "redmine_groups", ["redmine_server_id"], name: "index_redmine_groups_on_redmine_server_id"
 
+  create_table "redmine_issue_priorities", force: :cascade do |t|
+    t.string   "name"
+    t.integer  "rmid"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_server_id"
+  end
+
+  add_index "redmine_issue_priorities", ["redmine_server_id"], name: "index_redmine_issue_priorities_on_redmine_server_id"
+
   create_table "redmine_issue_statuses", force: :cascade do |t|
     t.string   "name"
     t.integer  "rmid"
@@ -32,6 +42,19 @@ ActiveRecord::Schema.define(version: 20170413170104) do
   end
 
   add_index "redmine_issue_statuses", ["redmine_server_id"], name: "index_redmine_issue_statuses_on_redmine_server_id"
+
+  create_table "redmine_memberships", force: :cascade do |t|
+    t.integer  "rmid"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_project_id"
+    t.integer  "redmine_user_id"
+    t.integer  "redmine_group_id"
+  end
+
+  add_index "redmine_memberships", ["redmine_group_id"], name: "index_redmine_memberships_on_redmine_group_id"
+  add_index "redmine_memberships", ["redmine_project_id"], name: "index_redmine_memberships_on_redmine_project_id"
+  add_index "redmine_memberships", ["redmine_user_id"], name: "index_redmine_memberships_on_redmine_user_id"
 
   create_table "redmine_projects", force: :cascade do |t|
     t.string   "identifier"

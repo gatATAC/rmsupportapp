@@ -1,4 +1,4 @@
-class RedmineGroup < ActiveRecord::Base
+class RedmineIssuePriority < ActiveRecord::Base
 
   hobo_model # Don't put anything above this
 
@@ -9,9 +9,7 @@ class RedmineGroup < ActiveRecord::Base
   end
   attr_accessible :name, :rmid
 
-  belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_groups  
-  
-  has_many :redmine_memberships, :dependent => :destroy, :inverse_of => :redmine_group
+  belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_issue_priorities  
   
   # --- Permissions --- #
 
