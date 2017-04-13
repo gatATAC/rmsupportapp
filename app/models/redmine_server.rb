@@ -16,8 +16,10 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_trackers, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_issue_statuses, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
   
-  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses, :redmine_roles
+  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses, 
+    :redmine_roles, :redmine_groups
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -153,6 +155,37 @@ class RedmineServer < ActiveRecord::Base
           end
           rm_rol.name = rol.name
           rm_rol.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
+
+  def reload_groups
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_groups
+    groups = RedmineRest::Models::Group.all
+    if (groups != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo gtoups = "+groups.size.to_s)
+      if (groups.size > 0) then
+        print("\ntengo groups = "+groups.size.to_s)
+        groups.each do |group|
+          print("\ntrato el group "+group.id.to_s)
+          rm_group = self.redmine_groups.find_by_rmid(group.id)
+          if (not(rm_group)) then
+            rm_group = RedmineGroup.new
+            rm_group.rmid = group.id
+            rm_group.redmine_server = self
+          else
+            extra.delete(rm_group)
+          end
+          rm_group.name = group.name
+          rm_group.save
         end
       end
     end
