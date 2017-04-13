@@ -11,7 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170413140502) do
+ActiveRecord::Schema.define(version: 20170413145654) do
+
+  create_table "redmine_projects", force: :cascade do |t|
+    t.string   "identifier"
+    t.integer  "rmid"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_server_id"
+  end
+
+  add_index "redmine_projects", ["redmine_server_id"], name: "index_redmine_projects_on_redmine_server_id"
 
   create_table "redmine_servers", force: :cascade do |t|
     t.string   "name"
@@ -22,11 +32,12 @@ ActiveRecord::Schema.define(version: 20170413140502) do
   end
 
   create_table "redmine_users", force: :cascade do |t|
-    t.string   "name"
+    t.string   "login"
     t.string   "apikey"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "redmine_server_id"
+    t.integer  "rmid"
   end
 
   add_index "redmine_users", ["redmine_server_id"], name: "index_redmine_users_on_redmine_server_id"

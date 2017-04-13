@@ -1,19 +1,18 @@
-class RedmineUser < ActiveRecord::Base
+class RedmineProject < ActiveRecord::Base
 
   hobo_model # Don't put anything above this
 
   fields do
-    login   :string
-    apikey :string
-    rmid :integer
+    identifier :string
+    rmid :integer    
     timestamps
   end
-  attr_accessible :login, :apikey, :rmid
+  attr_accessible :identifier, :rmid
   
-  belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_users
+  belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_projects
 
   def name
-    login
+    identifier
   end
   
   # --- Permissions --- #

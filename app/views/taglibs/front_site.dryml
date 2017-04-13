@@ -13,3 +13,14 @@
 <include src="taglibs/auto/rapid/forms"/>
 
 <include src="application"/>
+
+<extend tag="show-page" for="RedmineServer">
+    <old-show-page merge>
+        <prepend-collection-section:>
+            <ul>
+                <li><%= link_to("Reload Users", [@redmine_server, :action => :reload_users , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload Projects", [@redmine_server, :action => :reload_projects , :only_path => :true], :method => :post) %></li>
+            </ul>
+        </prepend-collection-section:>
+    </old-show-page>
+</extend>

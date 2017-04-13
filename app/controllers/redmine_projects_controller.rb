@@ -1,4 +1,4 @@
-class RedmineUsersController < ApplicationController
+class RedmineProjectsController < ApplicationController
 
   hobo_model_controller
 
