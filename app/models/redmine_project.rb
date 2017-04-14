@@ -23,7 +23,69 @@ class RedmineProject < ActiveRecord::Base
   end
   
   def reload_issues
-  
+      RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
+    
+    pending_issues = true
+    pending_offset = 0
+    extra = []
+    extra += self.redmine_issues
+    while (pending_issues) do
+      issues = RedmineRest::Models::Issue.where(project_id:self.rmid, offset:pending_offset, order:('id desc'))
+      if (issues != nil) then
+        print("\n\n\n\n\n\n\n\n\ntengo issues = "+issues.size.to_s+"\n")
+        pending_offset += issues.size
+        if (issues.size > 0) then
+          print("\ntengo issues2 = "+issues.size.to_s)
+          issues.each do |issue|
+            print("\ntrato la issue "+issue.id.to_s)
+            rm_issue = self.redmine_issues.find_by_rmid(issue.id)
+            if (not(rm_issue)) then
+              rm_issue = RedmineIssue.new
+              rm_issue.rmid = issue.id
+              rm_issue.redmine_project = self
+            else
+              extra.delete(rm_issue)
+            end
+            rm_issue.subject = issue.subject
+            rm_issue.description = issue.description
+            rm_issue.start_date = issue.start_date
+            rm_issue.due_date = issue.due_date
+            rm_issue.done_ratio = issue.done_ratio
+            rm_issue.estimated_hours = issue.estimated_hours
+            rm_issue.author = RedmineUser.find_by_rmid(issue.author.id)
+            begin
+              assigned_to = issue.assigned_to.id
+              tmp = RedmineUser.find_by_rmid(assigned_to)
+              if (tmp) then
+                rm_issue.redmine_user = tmp
+                rm_issue.redmine_group = nil
+              else
+                tmp = RedmineGroup.find_by_rmid(assigned_to)
+                rm_issue.redmine_group = tmp
+                rm_issue.redmine_user = nil
+              end
+            rescue ActiveResource::ResourceNotFound
+              rm_issue.redmine_user = nil
+              rm_issue.redmine_group = nil
+            end
+            rm_issue.redmine_tracker = RedmineTracker.find_by_rmid(issue.tracker.id)
+            rm_issue.redmine_issue_status = RedmineIssueStatus.find_by_rmid(issue.status.id)
+            rm_issue.redmine_issue_priority = RedmineIssuePriority.find_by_rmid(issue.priority.id)
+            rm_issue.redmine_version = RedmineVersion.find_by_rmid(issue.fixed_version.id)
+            rm_issue.is_private = issue.is_private.to_sym
+            rm_issue.save
+          end
+        else
+          pending_issues = false
+        end
+      else
+        pending_issues = false
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
   end
   
   def reload_memberships

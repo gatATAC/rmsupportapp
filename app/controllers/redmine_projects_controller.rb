@@ -29,7 +29,7 @@ class RedmineProjectsController < ApplicationController
 
   def reload_issues
     @redmine_project = find_instance
-    @redmine_project.reload_versions
+    @redmine_project.reload_issues
     redirect_to this    
   end
 

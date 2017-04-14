@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414021607) do
+ActiveRecord::Schema.define(version: 20170414093727) do
 
   create_table "redmine_groups", force: :cascade do |t|
     t.string   "name"
@@ -61,6 +61,7 @@ ActiveRecord::Schema.define(version: 20170414021607) do
     t.integer  "redmine_issue_status_id"
     t.integer  "redmine_issue_priority_id"
     t.integer  "redmine_version_id"
+    t.boolean  "is_private"
   end
 
   add_index "redmine_issues", ["author_id"], name: "index_redmine_issues_on_author_id"

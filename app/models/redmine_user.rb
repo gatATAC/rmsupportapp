@@ -15,7 +15,7 @@ class RedmineUser < ActiveRecord::Base
   has_many :redmine_memberships, :dependent => :destroy, :inverse_of => :redmine_user
   has_many :redmine_wikis, :dependent => :destroy, :inverse_of => :redmine_user
   has_many :redmine_issues, :inverse_of => :redmine_user
-  has_many :redmine_created_issues, :class_name => 'Issue', :inverse_of => :author
+  has_many :redmine_created_issues, :class_name => 'RedmineIssue', :inverse_of => :author
   
   def name
     login
