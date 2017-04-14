@@ -19,3 +19,4 @@ app/views/taglibs/auto/**/*
 config/hobo_routes.rb
 /nbproject/private/
 /vendor/bundle
+/db/development_iac.sqlite3

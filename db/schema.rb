@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414123303) do
+ActiveRecord::Schema.define(version: 20170414151933) do
 
   create_table "redmine_custom_fields", force: :cascade do |t|
     t.integer  "rmid"
@@ -151,6 +151,10 @@ ActiveRecord::Schema.define(version: 20170414123303) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "redmine_server_id"
+    t.string   "name"
+    t.text     "description"
+    t.string   "homepage"
+    t.integer  "status"
   end
 
   add_index "redmine_projects", ["redmine_server_id"], name: "index_redmine_projects_on_redmine_server_id"

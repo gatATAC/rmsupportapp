@@ -4,7 +4,12 @@ class RedmineProject < ActiveRecord::Base
 
   fields do
     identifier :string
-    rmid :integer    
+    rmid :integer
+    name :string
+    description :text
+    homepage :string
+    status :integer
+    
     timestamps
   end
   attr_accessible :identifier, :rmid
@@ -39,7 +44,7 @@ class RedmineProject < ActiveRecord::Base
     extra = []
     extra += self.redmine_issues
     while (pending_issues) do
-      issues = RedmineRest::Models::Issue.where(project_id:self.rmid, offset:pending_offset, order:('id desc'))
+      issues = RedmineRest::Models::Issue.where(project_id:self.rmid, status_id:"*", offset:pending_offset, order:('id desc'))
       if (issues != nil) then
         print("\n\n\n\n\n\n\n\n\ntengo issues = "+issues.size.to_s+"\n")
         pending_offset += issues.size
@@ -140,23 +145,25 @@ class RedmineProject < ActiveRecord::Base
       extra = []
       extra += issue.redmine_issue_relations
       relations = RedmineRest::Models::Relation.where(issue_id:issue.rmid, offset:pending_offset, order:('id desc'))
-      relations.each { |relation|
-        a = relation.issue_to_id.to_i
-        if (a != issue.rmid) then
-          rm_issue_relation = issue.redmine_issue_relations.find_by_rmid(relation.id)
-          if (not(rm_issue_relation)) then
-            rm_issue_relation = RedmineIssueRelation.new
-            rm_issue_relation.rmid = relation.id
-            rm_issue_relation.redmine_issue = issue
-          else
-            extra.delete(rm_issue_relation)
+      if (relations) then
+        relations.each { |relation|
+          a = relation.issue_to_id.to_i
+          if (a != issue.rmid) then
+            rm_issue_relation = issue.redmine_issue_relations.find_by_rmid(relation.id)
+            if (not(rm_issue_relation)) then
+              rm_issue_relation = RedmineIssueRelation.new
+              rm_issue_relation.rmid = relation.id
+              rm_issue_relation.redmine_issue = issue
+            else
+              extra.delete(rm_issue_relation)
+            end
+            rm_issue_relation.destination_issue = RedmineIssue.find_by_rmid(relation.issue_to_id)
+            rm_issue_relation.delay = relation.delay
+            rm_issue_relation.relation_type = relation.relation_type
+            rm_issue_relation.save
           end
-          rm_issue_relation.destination_issue = RedmineIssue.find_by_rmid(relation.issue_to_id)
-          rm_issue_relation.delay = relation.delay
-          rm_issue_relation.relation_type = relation.relation_type
-          rm_issue_relation.save
-        end
-      }
+        }
+      end
       extra.each {|irm|
         irm.delete
       }

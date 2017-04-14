@@ -121,6 +121,8 @@ class RedmineServer < ActiveRecord::Base
     
     extra = []
     extra += self.redmine_trackers
+    trackerspath = RedmineRest::Models::Tracker.collection_path({:project_id => 0})
+    print ("\n\nPath: " + trackerspath)
     trackers = RedmineRest::Models::Tracker.all
     if (trackers != nil) then
       print("\n\n\n\n\n\n\n\n\ntengo trackers = "+trackers.size.to_s)
