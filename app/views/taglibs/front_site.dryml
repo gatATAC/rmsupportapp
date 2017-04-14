@@ -22,6 +22,7 @@
                 <li><%= link_to("Reload IssueStatuses", [@redmine_server, :action => :reload_issue_statuses , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload IssuePriorities", [@redmine_server, :action => :reload_issue_priorities , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Roles", [@redmine_server, :action => :reload_roles , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload Custom Fields", [@redmine_server, :action => :reload_custom_fields , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Groups", [@redmine_server, :action => :reload_groups , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Users", [@redmine_server, :action => :reload_users , :only_path => :true], :method => :post) %></li>
                 <li><%= link_to("Reload Projects", [@redmine_server, :action => :reload_projects , :only_path => :true], :method => :post) %></li>

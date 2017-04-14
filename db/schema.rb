@@ -11,7 +11,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414095950) do
+ActiveRecord::Schema.define(version: 20170414112924) do
+
+  create_table "redmine_custom_fields", force: :cascade do |t|
+    t.integer  "rmid"
+    t.string   "name"
+    t.string   "customized_type"
+    t.string   "field_format"
+    t.string   "regexp"
+    t.integer  "min_length"
+    t.integer  "max_length"
+    t.boolean  "is_required"
+    t.boolean  "is_filter"
+    t.boolean  "searchable"
+    t.boolean  "multiple"
+    t.string   "default_value"
+    t.boolean  "is_visible"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_server_id"
+  end
+
+  add_index "redmine_custom_fields", ["redmine_server_id"], name: "index_redmine_custom_fields_on_redmine_server_id"
 
   create_table "redmine_groups", force: :cascade do |t|
     t.string   "name"

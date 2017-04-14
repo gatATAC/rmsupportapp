@@ -78,6 +78,11 @@ class RedmineProject < ActiveRecord::Base
               rm_issue.redmine_version = nil
             end
             rm_issue.is_private = issue.is_private.to_sym
+             if (issue.custom_fields) then
+              issue.custom_fields.each{|f|
+                print("\n\nTrato el custom field "+f.name)
+              }
+            end
             rm_issue.save
             processed_issues << rm_issue
           end

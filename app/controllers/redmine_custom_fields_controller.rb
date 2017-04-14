@@ -1,4 +1,4 @@
-class RedmineIssueRelationsController < ApplicationController
+class RedmineCustomFieldsController < ApplicationController
 
   hobo_model_controller
 

@@ -11,6 +11,7 @@ class RedmineServersController < ApplicationController
   web_method :reload_roles
   web_method :reload_groups
   web_method :reload_issue_priorities
+  web_method :reload_custom_fields
   
   def reload_users
     @redmine_server = find_instance
@@ -53,4 +54,11 @@ class RedmineServersController < ApplicationController
     @redmine_server.reload_projects
     redirect_to this
   end  
+
+  def reload_custom_fields
+    @redmine_server = find_instance
+    @redmine_server.reload_custom_fields
+    redirect_to this    
+  end
+  
 end

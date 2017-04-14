@@ -1,9 +1,9 @@
 GIT
   remote: /home/est/dev/gatatac/redmine_rest
-  revision: 31aed8d13d3fae868f4a4bb03ca837e1e7618d83
+  revision: 3f64a821c2da0802293922549fdb57c486d631c0
   branch: develop
   specs:
-    redmine_rest (0.8.0.21)
+    redmine_rest (0.8.0.22)
       activeresource (= 4.0.0)
       unicode (= 0.4.4.2)
 

@@ -18,9 +18,10 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_issue_priorities, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_custom_fields, :dependent => :destroy, :inverse_of => :redmine_server
   
   children :redmine_projects, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
-    :redmine_roles, :redmine_groups, :redmine_issue_priorities
+    :redmine_roles, :redmine_groups, :redmine_issue_priorities, :redmine_custom_fields
   
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
@@ -258,6 +259,47 @@ class RedmineServer < ActiveRecord::Base
     }
   end
 
+  def reload_custom_fields
+    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    
+    extra = []
+    extra += self.redmine_custom_fields
+    cfields = RedmineRest::Models::CustomField.all
+    if (cfields != nil) then
+      print("\n\n\n\n\n\n\n\n\ntengo cfields = "+cfields.size.to_s)
+      if (cfields.size > 0) then
+        print("\ntengo cfields = "+cfields.size.to_s)
+        cfields.each do |cfield|
+          print("\ntrato el cfield "+cfield.id.to_s)
+          rm_cfield = self.redmine_custom_fields.find_by_rmid(cfield.id)
+          if (not(rm_cfield)) then
+            rm_cfield = RedmineCustomField.new
+            rm_cfield.rmid = cfield.id
+            rm_cfield.redmine_server = self
+          else
+            extra.delete(rm_cfield)
+          end
+          rm_cfield.name = cfield.name
+          rm_cfield.customized_type = cfield.customized_type
+          rm_cfield.field_format = cfield.field_format
+          rm_cfield.regexp = cfield.regexp
+          rm_cfield.min_length = cfield.min_length
+          rm_cfield.max_length = cfield.max_length
+          rm_cfield.is_required = cfield.is_required
+          rm_cfield.is_filter = cfield.is_filter
+          rm_cfield.searchable = cfield.searchable
+          rm_cfield.multiple = cfield.multiple
+          rm_cfield.default_value = cfield.default_value
+          rm_cfield.is_visible = cfield.visible
+          rm_cfield.save
+        end
+      end
+    end
+
+    extra.each {|irm|
+      irm.delete
+    }
+  end
   # --- Permissions --- #
 
   def create_permitted?
