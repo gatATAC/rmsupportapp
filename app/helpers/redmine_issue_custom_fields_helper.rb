@@ -1,0 +1,2 @@
+module RedmineIssueCustomFieldsHelper
+end

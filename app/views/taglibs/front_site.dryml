@@ -18,14 +18,17 @@
     <old-show-page merge>
         <prepend-collection-section:>
             <ul>
-                <li><%= link_to("Reload Trackers", [@redmine_server, :action => :reload_trackers , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload IssueStatuses", [@redmine_server, :action => :reload_issue_statuses , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload IssuePriorities", [@redmine_server, :action => :reload_issue_priorities , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Roles", [@redmine_server, :action => :reload_roles , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Custom Fields", [@redmine_server, :action => :reload_custom_fields , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Groups", [@redmine_server, :action => :reload_groups , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Users", [@redmine_server, :action => :reload_users , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Projects", [@redmine_server, :action => :reload_projects , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload All", [@redmine_server, :action => :reload_all , :only_path => :true], :method => :post) %></li>
+                <ul>
+                    <li><%= link_to("Reload Trackers", [@redmine_server, :action => :reload_trackers , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload IssueStatuses", [@redmine_server, :action => :reload_issue_statuses , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload IssuePriorities", [@redmine_server, :action => :reload_issue_priorities , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Roles", [@redmine_server, :action => :reload_roles , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Custom Fields", [@redmine_server, :action => :reload_custom_fields , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Groups", [@redmine_server, :action => :reload_groups , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Users", [@redmine_server, :action => :reload_users , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Projects", [@redmine_server, :action => :reload_projects , :only_path => :true], :method => :post) %></li>
+                </ul>
             </ul>
         </prepend-collection-section:>
     </old-show-page>
@@ -36,10 +39,13 @@
     <old-show-page merge>
         <prepend-collection-section:>
             <ul>
-                <li><%= link_to("Reload Memberships", [@redmine_project, :action => :reload_memberships , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Wikis", [@redmine_project, :action => :reload_wikis , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Versions", [@redmine_project, :action => :reload_versions , :only_path => :true], :method => :post) %></li>
-                <li><%= link_to("Reload Issues", [@redmine_project, :action => :reload_issues , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload All", [@redmine_project, :action => :reload_all , :only_path => :true], :method => :post) %></li>
+                <ul>
+                    <li><%= link_to("Reload Memberships", [@redmine_project, :action => :reload_memberships , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Wikis", [@redmine_project, :action => :reload_wikis , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Versions", [@redmine_project, :action => :reload_versions , :only_path => :true], :method => :post) %></li>
+                    <li><%= link_to("Reload Issues", [@redmine_project, :action => :reload_issues , :only_path => :true], :method => :post) %></li>
+                </ul>
             </ul>
         </prepend-collection-section:>
     </old-show-page>

@@ -22,6 +22,10 @@ class RedmineCustomField < ActiveRecord::Base
 
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_custom_fields  
   
+  has_many :redmine_issue_custom_fields, :dependent => :destroy, :inverse_of => :redmine_custom_field
+  
+  children :redmine_issue_custom_fields
+  
   # --- Permissions --- #
 
   def create_permitted?

@@ -8,6 +8,13 @@ class RedmineProjectsController < ApplicationController
   web_method :reload_wikis
   web_method :reload_versions
   web_method :reload_issues
+  web_method :reload_all
+  
+  def reload_all
+    @redmine_project = find_instance
+    @redmine_project.reload_all
+    redirect_to this    
+  end
   
   def reload_memberships
     @redmine_project = find_instance

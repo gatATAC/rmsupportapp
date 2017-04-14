@@ -23,6 +23,18 @@ class RedmineServer < ActiveRecord::Base
   children :redmine_projects, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
     :redmine_roles, :redmine_groups, :redmine_issue_priorities, :redmine_custom_fields
   
+  
+  def reload_all
+    self.reload_trackers
+    self.reload_issue_statuses
+    self.reload_issue_priorities
+    self.reload_roles
+    self.reload_custom_fields
+    self.reload_groups
+    self.reload_users
+    self.reload_projects
+  end
+  
   def reload_users
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
     

@@ -17,6 +17,14 @@ class RedmineWiki < ActiveRecord::Base
   belongs_to :redmine_project, :creator => :true, :inverse_of => :redmine_wikis
   belongs_to :redmine_user, :inverse_of => :redmine_wikis
   
+  def name
+    if self.parent then
+      ret = self.parent.name+":"
+    else
+      ret = ""
+    end
+    ret += self.title
+  end
   # --- Permissions --- #
 
   def create_permitted?

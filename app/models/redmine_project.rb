@@ -22,12 +22,20 @@ class RedmineProject < ActiveRecord::Base
     identifier
   end
   
+  def reload_all
+    self.reload_memberships
+    self.reload_wikis
+    self.reload_versions
+    self.reload_issues
+  end
+  
   def reload_issues
     RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
     
     pending_issues = true
     pending_offset = 0
     processed_issues = []
+    issue_with_parent = []    
     extra = []
     extra += self.redmine_issues
     while (pending_issues) do
@@ -78,9 +86,34 @@ class RedmineProject < ActiveRecord::Base
               rm_issue.redmine_version = nil
             end
             rm_issue.is_private = issue.is_private.to_sym
-             if (issue.custom_fields) then
+            
+            begin
+              rm_issue.parent_rmid = issue.parent.id            
+              issue_with_parent << rm_issue
+            rescue ActiveResource::ResourceNotFound
+              rm_issue.parent_rmid = nil           
+            end
+            
+            if (issue.custom_fields) then
+              extracfields = []
+              extracfields += rm_issue.redmine_issue_custom_fields
               issue.custom_fields.each{|f|
                 print("\n\nTrato el custom field "+f.name)
+                cf = RedmineCustomField.find_by_rmid(f.id)
+                rm_issue_cfield = rm_issue.redmine_issue_custom_fields.find_by_redmine_custom_field_id(cf.id)
+                if (not(rm_issue_cfield)) then
+                  rm_issue_cfield = RedmineIssueCustomField.new
+                  rm_issue_cfield.redmine_issue = rm_issue
+                  rm_issue_cfield.redmine_custom_field = cf
+                else
+                  extracfields.delete(rm_issue_cfield)
+                end
+                rm_issue_cfield.cfield_name = f.name
+                rm_issue_cfield.value = f.value
+                rm_issue_cfield.save
+              }
+              extracfields.each{|ecf|
+                ecf.delete
               }
             end
             rm_issue.save
@@ -96,6 +129,11 @@ class RedmineProject < ActiveRecord::Base
 
     extra.each {|irm|
       irm.delete
+    }
+
+    issue_with_parent.each{|is|
+      is.parent = self.redmine_issues.find_by_rmid(is.parent_rmid)
+      is.save
     }
     
     processed_issues.each { |issue|

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414112924) do
+ActiveRecord::Schema.define(version: 20170414123303) do
 
   create_table "redmine_custom_fields", force: :cascade do |t|
     t.integer  "rmid"
@@ -43,6 +43,18 @@ ActiveRecord::Schema.define(version: 20170414112924) do
   end
 
   add_index "redmine_groups", ["redmine_server_id"], name: "index_redmine_groups_on_redmine_server_id"
+
+  create_table "redmine_issue_custom_fields", force: :cascade do |t|
+    t.string   "cfield_name"
+    t.string   "value"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_issue_id"
+    t.integer  "redmine_custom_field_id"
+  end
+
+  add_index "redmine_issue_custom_fields", ["redmine_custom_field_id"], name: "index_redmine_issue_custom_fields_on_redmine_custom_field_id"
+  add_index "redmine_issue_custom_fields", ["redmine_issue_id"], name: "index_redmine_issue_custom_fields_on_redmine_issue_id"
 
   create_table "redmine_issue_priorities", force: :cascade do |t|
     t.string   "name"
@@ -96,9 +108,12 @@ ActiveRecord::Schema.define(version: 20170414112924) do
     t.integer  "redmine_issue_priority_id"
     t.integer  "redmine_version_id"
     t.boolean  "is_private"
+    t.integer  "parent_id"
+    t.integer  "parent_rmid"
   end
 
   add_index "redmine_issues", ["author_id"], name: "index_redmine_issues_on_author_id"
+  add_index "redmine_issues", ["parent_id"], name: "index_redmine_issues_on_parent_id"
   add_index "redmine_issues", ["redmine_group_id"], name: "index_redmine_issues_on_redmine_group_id"
   add_index "redmine_issues", ["redmine_issue_priority_id"], name: "index_redmine_issues_on_redmine_issue_priority_id"
   add_index "redmine_issues", ["redmine_issue_status_id"], name: "index_redmine_issues_on_redmine_issue_status_id"

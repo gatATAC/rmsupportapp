@@ -1,6 +1,7 @@
 class RedmineIssue < ActiveRecord::Base
-
   hobo_model # Don't put anything above this
+
+  acts_as_tree  
 
   fields do
     subject         :string
@@ -11,9 +12,11 @@ class RedmineIssue < ActiveRecord::Base
     done_ratio      :integer
     estimated_hours :float
     is_private      :boolean
+    parent_rmid     :integer
     timestamps
   end
-  attr_accessible :subject, :rmid, :description, :start_date, :due_date, :done_ratio, :estimated_hours
+  attr_accessible :subject, :rmid, :description, :start_date, :due_date, 
+    :done_ratio, :estimated_hours, :parent_rmid
   belongs_to :redmine_project, :creator => :true, :inverse_of => :redmine_issues
   belongs_to :redmine_user, :inverse_of => :redmine_issues
   belongs_to :redmine_group, :inverse_of => :redmine_issues
@@ -29,11 +32,18 @@ class RedmineIssue < ActiveRecord::Base
     :inverse_of => :relation_destination_issues
   has_many :relation_destination_issues, :through => :relation_sources, :class_name => 'RedmineIssue',
     :inverse_of => :relation_source_issues
+
+  has_many :redmine_issue_custom_fields, :dependent => :destroy, :inverse_of => :redmine_issue
   
-  children :redmine_issue_relations
+  children :redmine_issue_custom_fields, :redmine_issue_relations
   
   def name
-    subject
+    if self.parent then
+      ret = "#"+self.parent.rmid.to_s+":"
+    else
+      ret = ""
+    end
+    ret += "#"+self.rmid.to_s+": "+self.subject
   end
 
   # --- Permissions --- #
