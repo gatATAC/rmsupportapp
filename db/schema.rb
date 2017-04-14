@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414093727) do
+ActiveRecord::Schema.define(version: 20170414095950) do
 
   create_table "redmine_groups", force: :cascade do |t|
     t.string   "name"
@@ -32,6 +32,19 @@ ActiveRecord::Schema.define(version: 20170414093727) do
   end
 
   add_index "redmine_issue_priorities", ["redmine_server_id"], name: "index_redmine_issue_priorities_on_redmine_server_id"
+
+  create_table "redmine_issue_relations", force: :cascade do |t|
+    t.string   "relation_type"
+    t.integer  "delay"
+    t.integer  "rmid"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_issue_id"
+    t.integer  "destination_issue_id"
+  end
+
+  add_index "redmine_issue_relations", ["destination_issue_id"], name: "index_redmine_issue_relations_on_destination_issue_id"
+  add_index "redmine_issue_relations", ["redmine_issue_id"], name: "index_redmine_issue_relations_on_redmine_issue_id"
 
   create_table "redmine_issue_statuses", force: :cascade do |t|
     t.string   "name"

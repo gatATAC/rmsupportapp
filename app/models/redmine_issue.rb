@@ -23,6 +23,15 @@ class RedmineIssue < ActiveRecord::Base
   belongs_to :redmine_issue_priority, :inverse_of => :redmine_issues
   belongs_to :redmine_version, :inverse_of => :redmine_issues
 
+  has_many :redmine_issue_relations, :dependent => :destroy, :inverse_of => :redmine_issue
+  has_many :relation_sources, :dependent => :destroy, :inverse_of => :destination_issue, :class_name => 'RedmineIssueRelation'
+  has_many :relation_source_issues, :through => :relation_sources, :class_name => 'RedmineIssue',
+    :inverse_of => :relation_destination_issues
+  has_many :relation_destination_issues, :through => :relation_sources, :class_name => 'RedmineIssue',
+    :inverse_of => :relation_source_issues
+  
+  children :redmine_issue_relations
+  
   def name
     subject
   end

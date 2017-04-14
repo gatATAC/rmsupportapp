@@ -23,10 +23,11 @@ class RedmineProject < ActiveRecord::Base
   end
   
   def reload_issues
-      RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
     
     pending_issues = true
     pending_offset = 0
+    processed_issues = []
     extra = []
     extra += self.redmine_issues
     while (pending_issues) do
@@ -71,9 +72,14 @@ class RedmineProject < ActiveRecord::Base
             rm_issue.redmine_tracker = RedmineTracker.find_by_rmid(issue.tracker.id)
             rm_issue.redmine_issue_status = RedmineIssueStatus.find_by_rmid(issue.status.id)
             rm_issue.redmine_issue_priority = RedmineIssuePriority.find_by_rmid(issue.priority.id)
-            rm_issue.redmine_version = RedmineVersion.find_by_rmid(issue.fixed_version.id)
+            begin
+              rm_issue.redmine_version = RedmineVersion.find_by_rmid(issue.fixed_version.id)
+            rescue ActiveResource::ResourceNotFound
+              rm_issue.redmine_version = nil
+            end
             rm_issue.is_private = issue.is_private.to_sym
             rm_issue.save
+            processed_issues << rm_issue
           end
         else
           pending_issues = false
@@ -85,6 +91,40 @@ class RedmineProject < ActiveRecord::Base
 
     extra.each {|irm|
       irm.delete
+    }
+    
+    processed_issues.each { |issue|
+      extra = []
+      extra += issue.redmine_issue_relations
+      relations = RedmineRest::Models::Relation.where(issue_id:issue.rmid, offset:pending_offset, order:('id desc'))
+      relations.each { |relation|
+        a = relation.issue_to_id.to_i
+        if (a != issue.rmid) then
+          rm_issue_relation = issue.redmine_issue_relations.find_by_rmid(relation.id)
+          if (not(rm_issue_relation)) then
+            rm_issue_relation = RedmineIssueRelation.new
+            rm_issue_relation.rmid = relation.id
+            rm_issue_relation.redmine_issue = issue
+          else
+            extra.delete(rm_issue_relation)
+          end
+          rm_issue_relation.destination_issue = RedmineIssue.find_by_rmid(relation.issue_to_id)
+          rm_issue_relation.delay = relation.delay
+          rm_issue_relation.relation_type = relation.relation_type
+          rm_issue_relation.save
+        end
+      }
+      extra.each {|irm|
+        irm.delete
+      }
+=begin
+      issue.redmine_issue_relations.each { |rel|
+        if (rel.redmine_issue == rel.destination_issue) then
+          rel.delete
+        end
+      }
+=end
+      issue.save
     }
   end
   

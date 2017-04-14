@@ -1,0 +1,2 @@
+module RedmineIssueRelationsHelper
+end
