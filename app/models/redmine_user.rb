@@ -13,6 +13,9 @@ class RedmineUser < ActiveRecord::Base
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_users
 
   has_many :redmine_memberships, :dependent => :destroy, :inverse_of => :redmine_user
+  has_many :redmine_wikis, :dependent => :destroy, :inverse_of => :redmine_user
+  has_many :redmine_issues, :inverse_of => :redmine_user
+  has_many :redmine_created_issues, :class_name => 'Issue', :inverse_of => :author
   
   def name
     login

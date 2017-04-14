@@ -12,6 +12,7 @@ class RedmineGroup < ActiveRecord::Base
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_groups  
   
   has_many :redmine_memberships, :dependent => :destroy, :inverse_of => :redmine_group
+  has_many :redmine_issues, :inverse_of => :redmine_group
   
   # --- Permissions --- #
 

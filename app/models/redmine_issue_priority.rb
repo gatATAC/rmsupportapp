@@ -10,6 +10,7 @@ class RedmineIssuePriority < ActiveRecord::Base
   attr_accessible :name, :rmid
 
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_issue_priorities  
+  has_many :redmine_issues, :inverse_of => :redmine_issue_priority
   
   # --- Permissions --- #
 

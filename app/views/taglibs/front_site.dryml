@@ -36,6 +36,9 @@
         <prepend-collection-section:>
             <ul>
                 <li><%= link_to("Reload Memberships", [@redmine_project, :action => :reload_memberships , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload Wikis", [@redmine_project, :action => :reload_wikis , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload Versions", [@redmine_project, :action => :reload_versions , :only_path => :true], :method => :post) %></li>
+                <li><%= link_to("Reload Issues", [@redmine_project, :action => :reload_issues , :only_path => :true], :method => :post) %></li>
             </ul>
         </prepend-collection-section:>
     </old-show-page>

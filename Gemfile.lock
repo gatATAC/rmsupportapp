@@ -1,9 +1,9 @@
 GIT
-  remote: https://github.com/gatATAC/redmine_rest.git
-  revision: 2d847b2293e06203b1ed7eaa42cac8ea02a0a204
+  remote: /home/est/dev/gatatac/redmine_rest
+  revision: 31aed8d13d3fae868f4a4bb03ca837e1e7618d83
   branch: develop
   specs:
-    redmine_rest (0.8.0)
+    redmine_rest (0.8.0.21)
       activeresource (= 4.0.0)
       unicode (= 0.4.4.2)
 
@@ -50,6 +50,8 @@ GEM
       tzinfo (~> 1.1)
     acts_as_list (0.9.5)
       activerecord (>= 3.0)
+    acts_as_tree (2.6.1)
+      activerecord (>= 3.0.0)
     arel (6.0.4)
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
@@ -207,6 +209,7 @@ PLATFORMS
 DEPENDENCIES
   activeresource
   acts_as_list
+  acts_as_tree
   byebug
   coffee-rails (~> 4.1.0)
   hobo (= 2.2.6)

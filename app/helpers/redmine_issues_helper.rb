@@ -1,0 +1,2 @@
+module RedmineIssuesHelper
+end

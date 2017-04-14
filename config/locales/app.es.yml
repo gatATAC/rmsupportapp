@@ -29,3 +29,6 @@ es:
 #    attribute_help:
 #      user:
 #        email_address:
+  date:
+    formats:
+      default: "%Y-%m-%d"

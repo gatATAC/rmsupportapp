@@ -19,7 +19,7 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
   
-  children :redmine_users, :redmine_projects, :redmine_trackers, :redmine_issue_statuses, 
+  children :redmine_projects, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
     :redmine_roles, :redmine_groups, :redmine_issue_priorities
   
   def reload_users

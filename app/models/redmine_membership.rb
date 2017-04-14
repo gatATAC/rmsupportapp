@@ -12,12 +12,17 @@ class RedmineMembership < ActiveRecord::Base
   belongs_to :redmine_user, :inverse_of => :redmine_memberships
   belongs_to :redmine_group, :inverse_of => :redmine_memberships
   
+  has_many :redmine_membership_roles, :inverse_of => :redmine_membership, :dependent => :destroy
+  has_many :redmine_roles, :through => :redmine_membership_roles, :inverse_of => :redmine_memberships
+  
+  children :redmine_membership_roles
+  
   def name
     if (self.redmine_user) then
-      "User: "+redmine_user.name
+      "User:"+self.rmid.to_s+" "+redmine_user.name
     else
       if (self.redmine_group) then
-        "Group: "+redmine_group.name
+        "Group:"+self.rmid.to_s+" "+redmine_group.name
       else
         "ERROR"
       end

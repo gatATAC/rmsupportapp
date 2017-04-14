@@ -1,16 +1,20 @@
-class RedmineIssueStatus < ActiveRecord::Base
+class RedmineMembershipRole < ActiveRecord::Base
 
   hobo_model # Don't put anything above this
 
   fields do
-    name :string
-    rmid :integer
     timestamps
   end
-  attr_accessible :name, :rmid
+  
+  attr_accessible 
 
-  belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_issue_statuses
-  has_many :redmine_issues, :inverse_of => :redmine_issue_status
+  belongs_to :redmine_membership, :creator => :true, :inverse_of => :redmine_membership_roles
+  belongs_to :redmine_role, :inverse_of => :redmine_membership_roles
+  
+  
+  def name
+    redmine_role.name
+  end
   
   # --- Permissions --- #
 

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170413175041) do
+ActiveRecord::Schema.define(version: 20170414021607) do
 
   create_table "redmine_groups", force: :cascade do |t|
     t.string   "name"
@@ -42,6 +42,45 @@ ActiveRecord::Schema.define(version: 20170413175041) do
   end
 
   add_index "redmine_issue_statuses", ["redmine_server_id"], name: "index_redmine_issue_statuses_on_redmine_server_id"
+
+  create_table "redmine_issues", force: :cascade do |t|
+    t.string   "subject"
+    t.integer  "rmid"
+    t.text     "description"
+    t.date     "start_date"
+    t.date     "due_date"
+    t.integer  "done_ratio"
+    t.float    "estimated_hours"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_project_id"
+    t.integer  "redmine_user_id"
+    t.integer  "redmine_group_id"
+    t.integer  "author_id"
+    t.integer  "redmine_tracker_id"
+    t.integer  "redmine_issue_status_id"
+    t.integer  "redmine_issue_priority_id"
+    t.integer  "redmine_version_id"
+  end
+
+  add_index "redmine_issues", ["author_id"], name: "index_redmine_issues_on_author_id"
+  add_index "redmine_issues", ["redmine_group_id"], name: "index_redmine_issues_on_redmine_group_id"
+  add_index "redmine_issues", ["redmine_issue_priority_id"], name: "index_redmine_issues_on_redmine_issue_priority_id"
+  add_index "redmine_issues", ["redmine_issue_status_id"], name: "index_redmine_issues_on_redmine_issue_status_id"
+  add_index "redmine_issues", ["redmine_project_id"], name: "index_redmine_issues_on_redmine_project_id"
+  add_index "redmine_issues", ["redmine_tracker_id"], name: "index_redmine_issues_on_redmine_tracker_id"
+  add_index "redmine_issues", ["redmine_user_id"], name: "index_redmine_issues_on_redmine_user_id"
+  add_index "redmine_issues", ["redmine_version_id"], name: "index_redmine_issues_on_redmine_version_id"
+
+  create_table "redmine_membership_roles", force: :cascade do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_membership_id"
+    t.integer  "redmine_role_id"
+  end
+
+  add_index "redmine_membership_roles", ["redmine_membership_id"], name: "index_redmine_membership_roles_on_redmine_membership_id"
+  add_index "redmine_membership_roles", ["redmine_role_id"], name: "index_redmine_membership_roles_on_redmine_role_id"
 
   create_table "redmine_memberships", force: :cascade do |t|
     t.integer  "rmid"
@@ -104,6 +143,37 @@ ActiveRecord::Schema.define(version: 20170413175041) do
   end
 
   add_index "redmine_users", ["redmine_server_id"], name: "index_redmine_users_on_redmine_server_id"
+
+  create_table "redmine_versions", force: :cascade do |t|
+    t.string   "name"
+    t.text     "description"
+    t.string   "status"
+    t.date     "due_date"
+    t.string   "sharing"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_project_id"
+    t.integer  "rmid"
+  end
+
+  add_index "redmine_versions", ["redmine_project_id"], name: "index_redmine_versions_on_redmine_project_id"
+
+  create_table "redmine_wikis", force: :cascade do |t|
+    t.integer  "parent_id"
+    t.string   "title"
+    t.integer  "rmid"
+    t.text     "wikitext"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_project_id"
+    t.integer  "redmine_user_id"
+    t.string   "parent_title"
+  end
+
+  add_index "redmine_wikis", ["parent_id"], name: "index_redmine_wikis_on_parent_id"
+  add_index "redmine_wikis", ["redmine_project_id"], name: "index_redmine_wikis_on_redmine_project_id"
+  add_index "redmine_wikis", ["redmine_user_id"], name: "index_redmine_wikis_on_redmine_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "crypted_password",          limit: 40

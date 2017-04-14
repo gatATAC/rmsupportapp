@@ -11,6 +11,9 @@ class RedmineRole < ActiveRecord::Base
 
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_roles
   
+  has_many :redmine_membership_roles, :inverse_of => :redmine_role, :dependent => :destroy
+  has_many :redmine_memberships, :through => :redmine_membership_roles, :inverse_of => :redmine_roles
+
   # --- Permissions --- #
 
   def create_permitted?

@@ -10,6 +10,7 @@ class RedmineTracker < ActiveRecord::Base
   attr_accessible :name, :rmid
   
   belongs_to :redmine_server, :creator => :true, :inverse_of => :redmine_trackers
+  has_many :redmine_issues, :inverse_of => :redmine_tracker
 
   # --- Permissions --- #
 
