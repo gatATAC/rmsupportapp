@@ -1,5 +1,5 @@
 GIT
-  remote: /home/est/dev/gatatac/redmine_rest
+  remote: ../../redmine_rest
   revision: 3f64a821c2da0802293922549fdb57c486d631c0
   branch: develop
   specs:
@@ -234,3 +234,6 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   web-console (~> 2.0)
   yaml_db
+
+BUNDLED WITH
+   1.14.6
