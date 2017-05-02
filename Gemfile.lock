@@ -1,5 +1,5 @@
 GIT
-  remote: ../../redmine_rest
+  remote: ../redmine_rest
   revision: 3f64a821c2da0802293922549fdb57c486d631c0
   branch: develop
   specs:
@@ -69,6 +69,8 @@ GEM
     dryml (2.2.6)
       actionpack
       hobo_support (= 2.2.6)
+    eat (0.1.8)
+      httpclient
     erubis (2.7.0)
     execjs (2.7.0)
     globalid (0.3.7)
@@ -99,6 +101,7 @@ GEM
     hobo_will_paginate (2.1.1)
     httparty (0.14.0)
       multi_xml (>= 0.5.2)
+    httpclient (2.8.3)
     i18n (0.8.1)
     jbuilder (2.6.3)
       activesupport (>= 3.0.0, < 5.2)
@@ -212,6 +215,7 @@ DEPENDENCIES
   acts_as_tree
   byebug
   coffee-rails (~> 4.1.0)
+  eat
   hobo (= 2.2.6)
   hobo_clean (= 2.2.6)
   hobo_clean_admin (= 2.2.6)

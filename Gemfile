@@ -73,3 +73,6 @@ gem 'yaml_db'
 group :production do
 #  gem 'mysql2'
 end
+
+gem 'eat'
+

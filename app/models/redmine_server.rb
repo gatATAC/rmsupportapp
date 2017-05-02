@@ -7,9 +7,11 @@ class RedmineServer < ActiveRecord::Base
     name :string
     url  :string
     admin_api_key :string
+    help_server_url :string, :default => nil
+    help_project :string, :default => 'help'
     timestamps
   end
-  attr_accessible :name, :url, :admin_api_key
+  attr_accessible :name, :url, :admin_api_key, :help_server_url
 
   has_many :redmine_users, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server
@@ -19,11 +21,39 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_roles, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_custom_fields, :dependent => :destroy, :inverse_of => :redmine_server
+  has_many :redmine_issues, :through => :redmine_projects, :inverse_of => :redmine_server
   
   children :redmine_projects, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
     :redmine_roles, :redmine_groups, :redmine_issue_priorities, :redmine_custom_fields
   
-  
+  def help_server_root
+    if (self.help_server_url == nil) then
+      ret = self.url
+    else
+      ret = self.help_server_url
+    end
+    return ret
+  end
+
+  def help_wiki_prefix
+    ret = help_server_root + "/projects/"+self.help_project+"/wiki/Help_"
+  end
+
+  def find_issue(rmid)
+    ret = self.redmine_issues.find_by_rmid(rmid)
+    if (ret == nil) then
+      self.reload_all
+      self.redmine_projects.each { |pr|
+        pr.reload_all
+      }
+      ret = self.redmine_issues.find_by_rmid(rmid)
+    else
+      ret.redmine_project.reload_all
+    end
+    #ret.reload_all
+    return ret
+  end
+
   def reload_all
     self.reload_trackers
     self.reload_issue_statuses

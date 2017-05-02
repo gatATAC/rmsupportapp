@@ -50,3 +50,13 @@
         </prepend-collection-section:>
     </old-show-page>
 </extend>
+
+<extend tag="show-page" for="RedmineIssue">
+    <old-show-page merge>
+        <prepend-collection-section:>
+            <ul>
+                <li><%= link_to("Help", [@redmine_issue, :action => :help , :only_path => :true], :method => :get) %></li>
+            </ul>
+        </prepend-collection-section:>
+    </old-show-page>
+</extend>

@@ -34,6 +34,7 @@ class RedmineIssue < ActiveRecord::Base
     :inverse_of => :relation_source_issues
 
   has_many :redmine_issue_custom_fields, :dependent => :destroy, :inverse_of => :redmine_issue
+  has_one :redmine_server, :through => :redmine_project, :inverse_of => :redmine_issues
   
   children :redmine_issue_custom_fields, :redmine_issue_relations
   

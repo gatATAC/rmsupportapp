@@ -1,0 +1,22 @@
+<page title="Home">
+
+  <body: class="help-page"/>
+
+  <content:>
+    <header class="content-header hero-unit">
+      <h1>Help for issue <%= @redmine_issue.name %></h1>
+    </header>
+
+    <section class="content-body">
+    This is the content body
+    <p>
+    The status is <%= @redmine_issue.redmine_issue_status.name %>
+    </p>
+    <p>
+    The tracker is <%= @redmine_issue.redmine_tracker.name %>
+    </p>
+    <%= raw(@text) %>
+    </section>
+  </content:>
+
+</page>

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170414151933) do
+ActiveRecord::Schema.define(version: 20170501221007) do
 
   create_table "redmine_custom_fields", force: :cascade do |t|
     t.integer  "rmid"
@@ -175,6 +175,8 @@ ActiveRecord::Schema.define(version: 20170414151933) do
     t.string   "admin_api_key"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "help_server_url"
+    t.string   "help_project",    default: "help"
   end
 
   create_table "redmine_trackers", force: :cascade do |t|

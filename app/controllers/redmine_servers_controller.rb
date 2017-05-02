@@ -13,7 +13,19 @@ class RedmineServersController < ApplicationController
   web_method :reload_issue_priorities
   web_method :reload_custom_fields
   web_method :reload_all
-  
+
+  show_action :issue_help
+
+  def issue_help
+    if params[:issue]
+      @redmine_server = find_instance
+      @issue = @redmine_server.find_issue(params[:issue])
+      if (@issue != nil) then
+        redirect_to controller: 'redmine_issues', action: 'help', id: @issue.id
+      end
+    end        
+  end
+
   def reload_all
     @redmine_server = find_instance
     @redmine_server.reload_all
