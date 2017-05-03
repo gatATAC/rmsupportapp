@@ -25,3 +25,6 @@ config/hobo_routes.rb
 /passenger.*.pid.lock
 /public/assets/
 
+/.hg
+/.hgignore
+
