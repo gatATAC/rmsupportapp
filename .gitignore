@@ -20,3 +20,8 @@ config/hobo_routes.rb
 /nbproject/private/
 /vendor/bundle
 /db/development_iac.sqlite3
+
+/db/production.sqlite3
+/passenger.*.pid.lock
+/public/assets/
+
