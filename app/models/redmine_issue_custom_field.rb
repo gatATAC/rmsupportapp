@@ -13,7 +13,11 @@ class RedmineIssueCustomField < ActiveRecord::Base
   belongs_to :redmine_custom_field, :inverse_of => :redmine_issue_custom_fields
   
   def name
-    cfield_name+": "+value
+    if (value) then
+        cfield_name+": "+value
+    else
+        cfield_name+": (nil)"
+    end
   end
   
   # --- Permissions --- #

@@ -17,8 +17,8 @@ class RedmineIssuesController < ApplicationController
     while (encontrado) do
       encontrado = false
       indicepr = nil
-        indicepr = t.index(cfstr,base)
-        if (indicepr != nil) then
+      indicepr = t.index(cfstr,base)
+      if (indicepr != nil) then
         indicepr1 = indicepr + cfstr.size
         print ("\nBuscamos " + cfstr + ": pos " + indicepr1.to_s)
         # Extract the Custom field
@@ -43,9 +43,13 @@ class RedmineIssuesController < ApplicationController
     return t
   end
   
+  require 'uri'
+
   def help
   	@redmine_issue = find_instance
     help_server_url = @redmine_issue.redmine_project.redmine_server.help_server_root+'/'
+    uri = URI.parse(help_server_url)
+    help_server_root = uri.scheme+'://'+uri.host+'/'
   	### Tracker wiki
   	urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_")
   	texto2 = '<div class="helpwiki">'
@@ -55,12 +59,12 @@ class RedmineIssuesController < ApplicationController
 
   	divs.each { |dv|
   		if (dv['class']=="wiki wiki-page") then
-		  	texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_url)
-		  	texto2 += texttmp.gsub('src="/', 'src="'+help_server_url)
+		  	texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_root)
+		  	texto2 += texttmp.gsub('src="/', 'src="'+help_server_root)
   		end
   	}
     texto2 += '</div>'
-    
+    texto2 += 'This information is extracted from <a href="' + urlstring + '"><b>the help wiki</b></a>'
   	### Tracker & status wiki
   	urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_") + 
       "_" + @redmine_issue.redmine_issue_status.name.tr(" ", "_")
@@ -70,11 +74,13 @@ class RedmineIssuesController < ApplicationController
   	divs = doc.xpath("//div")
   	divs.each { |dv|
   		if (dv['class']=="wiki wiki-page") then
-		  	texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_url)
-		  	texto2 += texttmp.gsub('src="/', 'src="'+help_server_url)
+        texto2 = self.scanTextCodes(@redmine_issue.redmine_project.redmine_server,texto2)
+        texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_root)
+        texto2 += texttmp.gsub('src="/', 'src="'+help_server_root)
   		end
   	}
     texto2 += '</div>'
+    texto2 += 'This information is extracted from <a href="' + urlstring + '"><b>the help wiki</b></a>'
     @text = self.scanTextCodes(@redmine_issue.redmine_project.redmine_server,texto2)
   end
 
