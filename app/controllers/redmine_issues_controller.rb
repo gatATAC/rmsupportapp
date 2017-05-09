@@ -49,7 +49,11 @@ class RedmineIssuesController < ApplicationController
   	@redmine_issue = find_instance
     help_server_url = @redmine_issue.redmine_project.redmine_server.help_server_root+'/'
     uri = URI.parse(help_server_url)
-    help_server_root = uri.scheme+'://'+uri.host+'/'
+    help_server_root = uri.scheme+'://'+uri.host
+    if (uri.port) then
+      help_server_root += ":" + uri.port.to_s
+    end
+    help_server_root += '/'
   	### Tracker wiki
   	urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_")
   	texto2 = '<div class="helpwiki">'
