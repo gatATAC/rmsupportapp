@@ -50,7 +50,7 @@ class RedmineServer < ActiveRecord::Base
     else
       ret.redmine_project.reload_all
     end
-    #ret.reload_all
+    ret.reload_all
     return ret
   end
 
@@ -131,6 +131,29 @@ class RedmineServer < ActiveRecord::Base
               extra.delete(rm_project)
             end
             rm_project.identifier = project.identifier
+            if (project.custom_fields) then
+              extracfields = []
+              extracfields += rm_project.redmine_project_custom_fields
+              project.custom_fields.each{|f|
+                print("\n\nTrato el custom field "+f.name)
+                cf = RedmineCustomField.find_by_rmid(f.id)
+                rm_prj_cfield = rm_project.redmine_project_custom_fields.find_by_redmine_custom_field_id(cf.id)
+                if (not(rm_prj_cfield)) then
+                  rm_prj_cfield = RedmineProjectCustomField.new
+                  rm_prj_cfield.redmine_project = rm_project
+                  rm_prj_cfield.redmine_custom_field = cf
+                else
+                  extracfields.delete(rm_prj_cfield)
+                end
+                rm_prj_cfield.cfield_name = f.name
+                rm_prj_cfield.value = f.value
+                rm_prj_cfield.save
+              }
+              extracfields.each{|ecf|
+                ecf.delete
+              }
+            end
+            
             rm_project.save
           end
         else

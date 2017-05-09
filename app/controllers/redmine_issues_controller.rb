@@ -8,7 +8,9 @@ class RedmineIssuesController < ApplicationController
 
   require 'eat'
   
-  def scanTextCodes(srv,t)
+  def scanTextCodes(issue, t)
+    prj = issue.redmine_project
+    srv = prj.redmine_server
     base = 0
     encontrado = true
     # Find a Custom Field related particle
@@ -34,10 +36,23 @@ class RedmineIssuesController < ApplicationController
             encontrado = true
             # Now it has to obtain the text to substitute the mark
             newtext = "[DUMMYTEXT:"+cf.to_s+"]"
-            t = t.slice(0,indicepr)+newtext + t.slice(indicepr2 + cfstrend.size,t.size)
+            if (issue) then
+              cfi = issue.redmine_issue_custom_fields.find_by_redmine_custom_field_id(cf.id)
+              if (cfi) then
+                newtext = cfi.value.to_s
+              else
+                if (prj) then
+                  cfi = prj.redmine_project_custom_fields.find_by_redmine_custom_field_id(cf.id)
+                  if (cfi) then
+                    newtext = cfi.value.to_s
+                  end
+                end
+              end
+            end
+            t = t.slice(0,indicepr) + newtext + t.slice(indicepr2 + cfstrend.size,t.size)
           end
         end
-        base = indicepr2 + cfstrend.size
+        base = indicepr + newtext.size 
       end
     end
     return t
@@ -46,7 +61,9 @@ class RedmineIssuesController < ApplicationController
   require 'uri'
 
   def help
-  	@redmine_issue = find_instance
+    @redmine_issue = find_instance
+    @redmine_issue.redmine_project.reload_all
+    @redmine_issue.redmine_server.reload_all
     help_server_url = @redmine_issue.redmine_project.redmine_server.help_server_root+'/'
     uri = URI.parse(help_server_url)
     help_server_root = uri.scheme+'://'+uri.host
@@ -54,38 +71,38 @@ class RedmineIssuesController < ApplicationController
       help_server_root += ":" + uri.port.to_s
     end
     help_server_root += '/'
-  	### Tracker wiki
-  	urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_")
-  	texto2 = '<div class="helpwiki">'
-  	texto = eat(urlstring)
-  	doc = Nokogiri::XML(texto)
-  	divs = doc.xpath("//div")
+    ### Tracker wiki
+    urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_")
+    texto2 = '<div class="helpwiki">'
+    texto = eat(urlstring)
+    doc = Nokogiri::XML(texto)
+    divs = doc.xpath("//div")
 
-  	divs.each { |dv|
-  		if (dv['class']=="wiki wiki-page") then
-		  	texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_root)
-		  	texto2 += texttmp.gsub('src="/', 'src="'+help_server_root)
-  		end
-  	}
-    texto2 += '</div>'
-    texto2 += 'This information is extracted from <a href="' + urlstring + '"><b>the help wiki</b></a>'
-  	### Tracker & status wiki
-  	urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_") + 
-      "_" + @redmine_issue.redmine_issue_status.name.tr(" ", "_")
-    texto2 += '<div class="helpwiki">'
-  	texto = eat(urlstring)
-  	doc = Nokogiri::XML(texto)
-  	divs = doc.xpath("//div")
-  	divs.each { |dv|
-  		if (dv['class']=="wiki wiki-page") then
-        texto2 = self.scanTextCodes(@redmine_issue.redmine_project.redmine_server,texto2)
+    divs.each { |dv|
+      if (dv['class']=="wiki wiki-page") then
         texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_root)
         texto2 += texttmp.gsub('src="/', 'src="'+help_server_root)
-  		end
-  	}
+      end
+    }
     texto2 += '</div>'
     texto2 += 'This information is extracted from <a href="' + urlstring + '"><b>the help wiki</b></a>'
-    @text = self.scanTextCodes(@redmine_issue.redmine_project.redmine_server,texto2)
+    ### Tracker & status wiki
+    urlstring = @redmine_issue.redmine_project.redmine_server.help_wiki_prefix + @redmine_issue.redmine_tracker.name.tr(" ", "_") + 
+      "_" + @redmine_issue.redmine_issue_status.name.tr(" ", "_")
+    texto2 += '<div class="helpwiki">'
+    texto = eat(urlstring)
+    doc = Nokogiri::XML(texto)
+    divs = doc.xpath("//div")
+    divs.each { |dv|
+      if (dv['class']=="wiki wiki-page") then
+        texto2 = self.scanTextCodes(@redmine_issue,texto2)
+        texttmp = dv.to_s.gsub('href="/', 'href="'+help_server_root)
+        texto2 += texttmp.gsub('src="/', 'src="'+help_server_root)
+      end
+    }
+    texto2 += '</div>'
+    texto2 += 'This information is extracted from <a href="' + urlstring + '"><b>the help wiki</b></a>'
+    @text = self.scanTextCodes(@redmine_issue,texto2)
   end
 
 end

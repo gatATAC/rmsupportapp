@@ -1,0 +1,2 @@
+module RedmineProjectCustomFieldsHelper
+end

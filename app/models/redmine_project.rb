@@ -21,7 +21,9 @@ class RedmineProject < ActiveRecord::Base
   has_many :redmine_versions, :dependent => :destroy, :inverse_of => :redmine_project
   has_many :redmine_issues, :dependent => :destroy, :inverse_of => :redmine_project
   
-  children :redmine_issues, :redmine_versions, :redmine_memberships, :redmine_wikis
+  has_many :redmine_project_custom_fields, :dependent => :destroy, :inverse_of => :redmine_project  
+  
+  children :redmine_issues, :redmine_versions, :redmine_memberships, :redmine_wikis, :redmine_project_custom_fields
   
   def name
     identifier

@@ -47,6 +47,9 @@ class RedmineIssue < ActiveRecord::Base
     ret += "#"+self.rmid.to_s+": "+self.subject
   end
 
+  def reload_all
+  
+  end
   # --- Permissions --- #
 
   def create_permitted?
