@@ -9,7 +9,6 @@ class RedmineIssuesController < ApplicationController
   require 'eat'
   
   def scanTextCodes(srv,t)
-    ret = t
     base = 0
     encontrado = true
     # Find a Custom Field related particle
@@ -20,26 +19,28 @@ class RedmineIssuesController < ApplicationController
       indicepr = nil
         indicepr = t.index(cfstr,base)
         if (indicepr != nil) then
-        indicepr = indicepr + cfstr.size
-        print ("\nBuscamos " + cfstr + ": pos " + indicepr.to_s)
+        indicepr1 = indicepr + cfstr.size
+        print ("\nBuscamos " + cfstr + ": pos " + indicepr1.to_s)
         # Extract the Custom field
         indicepr2 = nil
-        indicepr2 = t.index(cfstrend,indicepr)
+        indicepr2 = t.index(cfstrend,indicepr1)
         if (indicepr2 != nil) then
           print ("\nBuscamos " + cfstrend + ": pos " + indicepr2.to_s)
           # The value is between incidepr+5 and indicepr2
-          expcode = t.slice(indicepr, indicepr2 - indicepr)
+          expcode = t.slice(indicepr1, indicepr2 - indicepr1)
           print ("\ncfstr: " + cfstr + "\n")
           cf = srv.redmine_custom_fields.find_by_name(expcode)
           if (cf != nil) then
             encontrado = true
-            ret += cf.to_s
+            # Now it has to obtain the text to substitute the mark
+            newtext = "[DUMMYTEXT:"+cf.to_s+"]"
+            t = t.slice(0,indicepr)+newtext + t.slice(indicepr2 + cfstrend.size,t.size)
           end
         end
         base = indicepr2 + cfstrend.size
       end
     end
-    return ret
+    return t
   end
   
   def help
