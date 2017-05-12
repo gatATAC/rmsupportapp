@@ -6,7 +6,8 @@ class RedmineMembership < ActiveRecord::Base
     rmid :integer
     timestamps
   end
-  attr_accessible :rmid, :redmine_user_id, :redmine_group_id, :redmine_user, :redmine_group
+  attr_accessible :rmid, :redmine_user_id, :redmine_group_id, :redmine_user, 
+    :redmine_group#, :redmine_project, :redmine_project_id
 
   belongs_to :redmine_project, :creator => :true, :inverse_of => :redmine_memberships
   belongs_to :redmine_user, :inverse_of => :redmine_memberships

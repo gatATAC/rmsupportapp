@@ -15,6 +15,42 @@
     <p>
     The tracker is <%= @redmine_issue.redmine_tracker.name %>
     </p>
+    <p>
+    The assigned person is <%= @user.to_s %>
+    </p>
+    <p>
+    The assigned group is <%= @group.to_s %>
+    </p>
+    <p>
+    The roles of the assigned person are <%= 
+    tmp = []
+    if (@user_roles) then
+      @user_roles.each {|r|
+        tmp << r.name
+      }
+    end
+    tmp %>
+    </p>
+    <p>
+    The roles of the assigned group are <%= 
+    tmp = []
+    if (@group_roles) then
+      @group_roles.each {|r|
+        tmp << r.name
+      }
+    end
+    tmp %>
+    </p>
+    <p>
+    The related issues are <%= 
+    tmp = []
+    if (@related_issues) then
+      @related_issues.each {|r|
+        tmp << r.name
+      }
+    end
+    tmp %>
+    </p>
     <%= raw(@text) %>
     </section>
   </content:>
