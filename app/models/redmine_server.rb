@@ -106,6 +106,13 @@ class RedmineServer < ActiveRecord::Base
     }
   end
   
+  def project_cfields(p)
+    ret = p.custom_fields
+    return ret
+  rescue NoMethodError => e
+    return nil
+  end
+  
   def reload_projects
     RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
     
@@ -131,7 +138,10 @@ class RedmineServer < ActiveRecord::Base
               extra.delete(rm_project)
             end
             rm_project.identifier = project.identifier
-            if (project.custom_fields) then
+            # TODO: The Redmine MUST have any custom field.
+            # If it does not have them, then project.custom_fields fails
+            # We have created this function to rescue from that issue
+            if (self.project_cfields(project)) then
               extracfields = []
               extracfields += rm_project.redmine_project_custom_fields
               project.custom_fields.each{|f|
