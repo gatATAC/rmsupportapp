@@ -1,0 +1,15 @@
+<page title="Project Analysis">
+
+  <body: class="help-page"/>
+  
+  <content:>
+    <header class="content-header hero-unit">
+      <h1>Analysis for project <%= @redmine_project.name %></h1>
+    </header>
+
+    <section class="content-body">
+      <table-plus with="&@redmine_project.redmine_issues" fields="subject, MIC, MAC, MIT, MAT"/>
+    </section>
+  </content:>
+
+</page>

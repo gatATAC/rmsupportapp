@@ -46,6 +46,9 @@
                     <li><%= link_to("Reload Versions", [@redmine_project, :action => :reload_versions , :only_path => :true], :method => :post) %></li>
                     <li><%= link_to("Reload Issues", [@redmine_project, :action => :reload_issues , :only_path => :true], :method => :post) %></li>
                 </ul>
+                <ul>
+                    <li><%= link_to("Analysis", [@redmine_project, :action => :analysis , :only_path => :true], :method => :get) %></li>
+                </ul>
             </ul>
         </prepend-collection-section:>
     </old-show-page>

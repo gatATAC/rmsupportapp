@@ -11,7 +11,7 @@ class RedmineServer < ActiveRecord::Base
     help_project :string, :default => 'help'
     timestamps
   end
-  attr_accessible :name, :url, :admin_api_key, :help_server_url
+  attr_accessible :name, :url, :admin_api_key, :help_server_url, :help_project
 
   has_many :redmine_users, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_projects, :dependent => :destroy, :inverse_of => :redmine_server

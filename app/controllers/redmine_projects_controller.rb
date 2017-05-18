@@ -10,6 +10,12 @@ class RedmineProjectsController < ApplicationController
   web_method :reload_issues
   web_method :reload_all
   
+  show_action :analysis
+
+  def analysis
+    @redmine_project = find_instance
+  end
+  
   def reload_all
     @redmine_project = find_instance
     @redmine_project.reload_all

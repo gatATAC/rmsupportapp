@@ -50,6 +50,20 @@ class RedmineIssue < ActiveRecord::Base
   def reload_all
   
   end
+  
+  def MIC
+    0
+  end
+  def MAC
+    1
+  end
+  def MIT
+    2
+  end
+  def MAT
+    3
+  end
+  
   # --- Permissions --- #
 
   def create_permitted?
