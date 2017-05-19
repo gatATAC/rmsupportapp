@@ -14,6 +14,11 @@ class RedmineProjectsController < ApplicationController
 
   def analysis
     @redmine_project = find_instance
+    @issues = @redmine_project.redmine_issues.search(params[:search], :subject).order_by(parse_sort_param(:subject)).paginate(:page => params[:page])
+    @event_texts = @redmine_project.events.collect{|c|
+      c.name
+    }
+    @events = @redmine_project.events
   end
   
   def reload_all

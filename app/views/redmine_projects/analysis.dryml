@@ -1,15 +1,31 @@
 <page title="Project Analysis">
 
-  <body: class="help-page"/>
-  
-  <content:>
-    <header class="content-header hero-unit">
-      <h1>Analysis for project <%= @redmine_project.name %></h1>
-    </header>
+    <body: class="help-page"/>
 
-    <section class="content-body">
-      <table-plus with="&@redmine_project.redmine_issues" fields="subject, MIC, MAC, MIT, MAT"/>
-    </section>
-  </content:>
+    <content:>
+        <header class="content-header hero-unit">
+            <h1>Analysis for project <%= @redmine_project.name %></h1>
+        </header>
+
+        <section class="content-body">
+            <table-plus with="&@issues" fields="subject, precessor_relations_issue_subjects, initial_action?, duration, MIC, MAC, MIT, MAT, Hl, Ht, Hi"/>
+            <div class="table-plus">
+                <table>
+                    <tr>
+                        <th>state</th>
+                        <th>MIC</th>
+                        <th>MAC</th>
+                    </tr>
+                    <% @events.each{ |e| %>
+                      <tr> 
+                          <td> <%= e.name %> </td> 
+                          <td> <%= e.MIC.to_s %> </td> 
+                          <td> <%= e.MAC.to_s %> </td> 
+                      </tr>
+                    <% } %>
+                </table>
+            </div>
+        </section>
+    </content:>
 
 </page>

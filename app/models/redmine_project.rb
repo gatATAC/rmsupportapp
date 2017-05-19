@@ -29,6 +29,147 @@ class RedmineProject < ActiveRecord::Base
     identifier
   end
   
+  class Event
+    attr_accessor :project
+    attr_accessor :name
+    attr_accessor :input_issues
+    attr_accessor :output_issues
+    
+    def initialize(pr, name)
+      @name = name
+      @project = pr
+      @input_issues = []
+      @output_issues = []
+    end
+    
+    def MIC
+        prev_mics =  [0.0]
+        self.input_issues.each {|ii|
+          self.project.events.each{ |e| 
+            if (e != self) then
+              if (e.output_issues.include?(ii)) then
+                prev_mics << e.MIC + ii.duration
+              end
+            end
+          }
+        } 
+        ret = prev_mics.max        
+      return ret
+    end
+
+    def MAC
+      if (self.output_issues.empty?) then
+        ret = self.MIC
+      else
+        post_macs =  [111111111111111111111111.0]
+
+        self.output_issues.each {|ii|
+          self.project.events.each{ |e| 
+            if (e != self) then
+              if (e.input_issues.include?(ii)) then
+                post_macs << e.MAC - ii.duration
+              end
+            end
+          }
+        } 
+        ret = post_macs.min
+      end
+      return ret
+    end
+    
+  end
+  
+  def events 
+    ret = []
+    # initial event
+    einit = Event.new(self, "Init")
+    ret << einit
+    # End event
+    eend = Event.new(self, "End")
+    ret << eend
+
+    self.redmine_issues.each{|i|
+      # Connect as output issue
+      if (i.initial_action?) then
+        einit.output_issues << i
+      else
+        # Find any node that could be the origin of this issue
+        found = false
+        ret.each { |node|
+          node.input_issues.each{|ii|
+            if (ii.successor_relations.collect{|r| r.destination_issue}).include?(i) then
+              node.output_issues << i
+              found = true
+            end
+          }
+        }
+        if not found then
+          e = Event.new(self, "Inner")
+          e.output_issues << i
+          ret << e
+        end
+      end     
+      # Connect as input issue
+      if (i.final_action?) then
+        eend.input_issues << i
+      else
+        # Find any node that could be the end of this issue
+        found = false
+        ret.each { |node|
+          node.output_issues.each{|ii|
+            if (ii.precessor_relations.collect{|r| r.redmine_issue}).include?(i) then
+              node.input_issues << i
+              found = true
+            end
+          }
+        }
+        if not found then
+          e = Event.new(self, "Inner")
+          e.input_issues << i
+          ret << e
+        end
+      end  
+    }
+    # Now we have to simplify it, in order to take profit of all the equal inputs
+    # or outputs
+    ret2 = []
+    ret.each { |item|
+      unify = false
+      input1 = item.input_issues
+      output1 = item.input_issues
+      ret2.each { |item2| 
+        input2 = item2.input_issues
+        output2 = item2.output_issues
+        # Compare to see if they contain same elements
+        if (input1 - input2).size == 0 and
+            (input2 - input1).size == 0 then
+          item2.output_issues += item.output_issues
+          item2.output_issues = item2.output_issues.uniq
+          unify = true
+        end
+        if (output1 - output2).size == 0 and 
+            (output2 - output1).size == 0 then
+          item2.input_issues += item.input_issues
+          item2.input_issues = item2.input_issues.uniq
+          unify = true
+        end
+      }
+      if not unify then
+        ret2 << item
+      end
+    }
+    ret2.each { |item3|
+      item3.input_issues.each{ |i|  
+        item3.name = i.subject + ":" + item3.name
+      }
+      item3.output_issues.each{ |i|  
+        item3.name = item3.name + ":" + i.subject 
+      }
+    }
+    
+    return ret2
+  end
+  
   def reload_all
     self.reload_memberships
     self.reload_wikis
