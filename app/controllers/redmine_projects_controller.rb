@@ -11,7 +11,21 @@ class RedmineProjectsController < ApplicationController
   web_method :reload_all
   
   show_action :analysis
+  show_action :taskdiagram
+  show_action :taskdiagramjson
 
+  def taskdiagram
+    @redmine_project = find_instance
+    respond_to do |format|
+      format.json {
+        render :inline => find_instance.to_json
+      }
+      format.html {
+        hobo_show
+      }
+    end
+  end
+  
   def analysis
     @redmine_project = find_instance
     @issues = @redmine_project.redmine_issues.search(params[:search], :subject).order_by(parse_sort_param(:subject)).paginate(:page => params[:page])

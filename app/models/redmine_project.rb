@@ -43,17 +43,17 @@ class RedmineProject < ActiveRecord::Base
     end
     
     def MIC
-        prev_mics =  [0.0]
-        self.input_issues.each {|ii|
-          self.project.events.each{ |e| 
-            if (e != self) then
-              if (e.output_issues.include?(ii)) then
-                prev_mics << e.MIC + ii.duration
-              end
+      prev_mics =  [0.0]
+      self.input_issues.each {|ii|
+        self.project.events.each{ |e| 
+          if (e != self) then
+            if (e.output_issues.include?(ii)) then
+              prev_mics << e.MIC + ii.duration
             end
-          }
-        } 
-        ret = prev_mics.max        
+          end
+        }
+      } 
+      ret = prev_mics.max        
       return ret
     end
 
@@ -464,6 +464,46 @@ class RedmineProject < ActiveRecord::Base
     extra.each {|irm|
       irm.delete
     }
+  end
+  
+  def to_json
+    nodes = []
+    links = []
+    self.events.each{ |n|
+      if (n.input_issues.empty?) then
+        thisgroup = 1
+      else
+        if (n.output_issues.empty?) then
+          thisgroup = 3
+        else
+          thisgroup = 2
+        end
+      end
+      nodes << {:id => n.name, :group => thisgroup}
+    }
+
+    self.events.each{ |n|
+      n.output_issues.each{|i|
+        self.events.each{ |n2|
+          if (n != n2) then
+            if (n2.input_issues.include?(i)) then
+              links << {:source => n.name, :target => n2.name, :value => 1, :id => i.name} 
+            end
+          end
+        }
+      }
+    }
+    
+=begin
+    nodes << {:id => "Napoleon2", :group => 2}
+    nodes << {:id => "Mlle.Baptistine", :group => 3}
+    nodes << {:id => "Mme.Magloire", :group => 4}
+    links << {:source => "Napoleon2", :target => "Myriel", :value => 1}
+    links << {:source => "Mlle.Baptistine", :target => "Myriel", :value => 8}
+    links << {:source => "Mme.Magloire", :target => "Myriel", :value => 10}
+    links << {:source => "Mme.Magloire", :target => "Mlle.Baptistine", :value => 6}
+=end    
+    return {:nodes => nodes, :links => links}.to_json
   end
   
   # --- Permissions --- #
