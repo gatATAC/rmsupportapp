@@ -487,22 +487,13 @@ class RedmineProject < ActiveRecord::Base
         self.events.each{ |n2|
           if (n != n2) then
             if (n2.input_issues.include?(i)) then
-              links << {:source => n.name, :target => n2.name, :value => 1, :id => i.name} 
+              links << {:source => n.name, :target => n2.name, :value => i.duration, :id => i.name} 
             end
           end
         }
       }
     }
     
-=begin
-    nodes << {:id => "Napoleon2", :group => 2}
-    nodes << {:id => "Mlle.Baptistine", :group => 3}
-    nodes << {:id => "Mme.Magloire", :group => 4}
-    links << {:source => "Napoleon2", :target => "Myriel", :value => 1}
-    links << {:source => "Mlle.Baptistine", :target => "Myriel", :value => 8}
-    links << {:source => "Mme.Magloire", :target => "Myriel", :value => 10}
-    links << {:source => "Mme.Magloire", :target => "Mlle.Baptistine", :value => 6}
-=end    
     return {:nodes => nodes, :links => links}.to_json
   end
   

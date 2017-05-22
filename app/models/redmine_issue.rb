@@ -89,7 +89,11 @@ class RedmineIssue < ActiveRecord::Base
   end
   
   def duration
-    self.estimated_hours / 8.0
+    if (self.estimated_hours) then
+      ret = self.estimated_hours / 8.0
+    else
+      ret = 0.0
+    end
   end
   
   def MIC
