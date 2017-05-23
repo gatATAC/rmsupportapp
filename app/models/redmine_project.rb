@@ -20,10 +20,11 @@ class RedmineProject < ActiveRecord::Base
   has_many :redmine_wikis, :dependent => :destroy, :inverse_of => :redmine_project
   has_many :redmine_versions, :dependent => :destroy, :inverse_of => :redmine_project
   has_many :redmine_issues, :dependent => :destroy, :inverse_of => :redmine_project
+  has_many :redmine_issue_events, :dependent => :destroy, :inverse_of => :redmine_project
   
   has_many :redmine_project_custom_fields, :dependent => :destroy, :inverse_of => :redmine_project  
   
-  children :redmine_issues, :redmine_versions, :redmine_memberships, :redmine_wikis, :redmine_project_custom_fields
+  children :redmine_issues, :redmine_versions, :redmine_memberships, :redmine_wikis, :redmine_project_custom_fields, :redmine_issue_events
   
   def name
     identifier
@@ -40,43 +41,7 @@ class RedmineProject < ActiveRecord::Base
       @project = pr
       @input_issues = []
       @output_issues = []
-    end
-    
-    def MIC
-      prev_mics =  [0.0]
-      self.input_issues.each {|ii|
-        self.project.events.each{ |e| 
-          if (e != self) then
-            if (e.output_issues.include?(ii)) then
-              prev_mics << e.MIC + ii.duration
-            end
-          end
-        }
-      } 
-      ret = prev_mics.max        
-      return ret
-    end
-
-    def MAC
-      if (self.output_issues.empty?) then
-        ret = self.MIC
-      else
-        post_macs =  [111111111111111111111111.0]
-
-        self.output_issues.each {|ii|
-          self.project.events.each{ |e| 
-            if (e != self) then
-              if (e.input_issues.include?(ii)) then
-                post_macs << e.MAC - ii.duration
-              end
-            end
-          }
-        } 
-        ret = post_macs.min
-      end
-      return ret
-    end
-    
+    end 
   end
   
   def events 
@@ -177,6 +142,80 @@ class RedmineProject < ActiveRecord::Base
     self.reload_issues
   end
   
+  def create_events
+    prevevents = []
+    if self.redmine_issue_events then
+      prevevents += self.redmine_issue_events
+    end
+    self.events.each{ |e|
+      # Create missing events
+      event = self.redmine_issue_events.find_by_name(e.name)
+      if event == nil then
+        event = RedmineIssueEvent.new
+        event.redmine_project = self
+        event.name = e.name
+      else
+        prevevents.delete(event)
+      end
+      prev_issues = [] + event.input_issues
+      e.input_issues.each{|ii|
+        if (not event.input_issues.include?(ii)) then
+          event.input_issues << ii
+        else
+          prev_issues.delete(ii)
+        end
+      }
+      # remove links that no more exists
+      prev_issues.each{|pi|
+        event.input_issues.delete(pi)
+      }
+      prev_issues = [] + event.output_issues
+      e.output_issues.each{|oi|
+        if (not event.output_issues.include?(oi)) then
+          event.output_issues << oi
+        else
+          prev_issues.delete(oi)          
+        end
+      }
+      prev_issues.each{|pi|
+        event.output_issues.delete(pi)
+      }
+      event.save
+    }
+    # Delete events that no more exists    
+    prevevents.each{|e|
+      self.redmine_issue_events.delete(e)
+      e.destroy
+      # The associated links should be automatically destroyed
+    }
+  end
+
+  def calculate_MICs
+    self.redmine_issue_events.each{ |e|
+      if (e.output_issues.empty?) then
+        e.calculate_MIC
+      end
+    }
+  end
+
+  def calculate_MACs
+    self.redmine_issue_events.each{ |e|
+      if (e.input_issues.empty?) then
+        e.calculate_MAC
+      end
+    }
+  end
+
+  def calculate_metrics
+    self.calculate_MICs
+    self.calculate_MACs
+  end
+
+  def reload_events
+    self.create_events
+    self.calculate_metrics
+  end
+
   def reload_issues
     RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
     

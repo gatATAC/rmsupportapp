@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170509212220) do
+ActiveRecord::Schema.define(version: 20170522210812) do
 
   create_table "redmine_custom_fields", force: :cascade do |t|
     t.integer  "rmid"
@@ -55,6 +55,28 @@ ActiveRecord::Schema.define(version: 20170509212220) do
 
   add_index "redmine_issue_custom_fields", ["redmine_custom_field_id"], name: "index_redmine_issue_custom_fields_on_redmine_custom_field_id"
   add_index "redmine_issue_custom_fields", ["redmine_issue_id"], name: "index_redmine_issue_custom_fields_on_redmine_issue_id"
+
+  create_table "redmine_issue_event_links", force: :cascade do |t|
+    t.boolean  "input_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_issue_id"
+    t.integer  "redmine_issue_event_id"
+  end
+
+  add_index "redmine_issue_event_links", ["redmine_issue_event_id"], name: "index_redmine_issue_event_links_on_redmine_issue_event_id"
+  add_index "redmine_issue_event_links", ["redmine_issue_id"], name: "index_redmine_issue_event_links_on_redmine_issue_id"
+
+  create_table "redmine_issue_events", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "redmine_project_id"
+    t.float    "MIC"
+    t.float    "MAC"
+  end
+
+  add_index "redmine_issue_events", ["redmine_project_id"], name: "index_redmine_issue_events_on_redmine_project_id"
 
   create_table "redmine_issue_priorities", force: :cascade do |t|
     t.string   "name"
@@ -110,6 +132,15 @@ ActiveRecord::Schema.define(version: 20170509212220) do
     t.boolean  "is_private"
     t.integer  "parent_id"
     t.integer  "parent_rmid"
+    t.float    "MIC"
+    t.float    "MAC"
+    t.float    "MIT"
+    t.float    "MAT"
+    t.float    "Hl"
+    t.float    "Ht"
+    t.float    "Hi"
+    t.boolean  "initial_action"
+    t.boolean  "final_action"
   end
 
   add_index "redmine_issues", ["author_id"], name: "index_redmine_issues_on_author_id"

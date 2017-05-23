@@ -8,6 +8,7 @@ class RedmineProjectsController < ApplicationController
   web_method :reload_wikis
   web_method :reload_versions
   web_method :reload_issues
+  web_method :reload_events
   web_method :reload_all
   
   show_action :analysis
@@ -28,11 +29,10 @@ class RedmineProjectsController < ApplicationController
   
   def analysis
     @redmine_project = find_instance
+    @redmine_project.calculate_metrics
     @issues = @redmine_project.redmine_issues.search(params[:search], :subject).order_by(parse_sort_param(:subject)).paginate(:page => params[:page])
-    @event_texts = @redmine_project.events.collect{|c|
-      c.name
-    }
-    @events = @redmine_project.events
+    @events = @redmine_project.redmine_issue_events
+
   end
   
   def reload_all
@@ -62,6 +62,12 @@ class RedmineProjectsController < ApplicationController
   def reload_issues
     @redmine_project = find_instance
     @redmine_project.reload_issues
+    redirect_to this    
+  end
+
+  def reload_events
+    @redmine_project = find_instance
+    @redmine_project.reload_events
     redirect_to this    
   end
 

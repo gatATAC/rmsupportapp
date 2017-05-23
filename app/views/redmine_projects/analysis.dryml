@@ -8,23 +8,8 @@
         </header>
 
         <section class="content-body">
-            <table-plus with="&@issues" fields="subject, precessor_relations_issue_subjects, initial_action?, duration, MIC, MAC, MIT, MAT, Hl, Ht, Hi"/>
-            <div class="table-plus">
-                <table>
-                    <tr>
-                        <th>state</th>
-                        <th>MIC</th>
-                        <th>MAC</th>
-                    </tr>
-                    <% @events.each{ |e| %>
-                      <tr> 
-                          <td> <%= e.name %> </td> 
-                          <td> <%= e.MIC.to_s %> </td> 
-                          <td> <%= e.MAC.to_s %> </td> 
-                      </tr>
-                    <% } %>
-                </table>
-            </div>
+            <table-plus with="&@issues" fields="subject, initial_action?, final_action?, precessor_relations_issue_subjects, duration, MIC, MAC, MIT, MAT, Hl, Ht, Hi"/>
+            <table-plus with="&@events" fields="this, MIC, MAC"/>
             <embed src="./taskdiagram.html" width="100%" height="500px"/>
         </section>
     </content:>

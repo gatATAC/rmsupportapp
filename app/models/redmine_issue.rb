@@ -12,7 +12,17 @@ class RedmineIssue < ActiveRecord::Base
     done_ratio      :integer
     estimated_hours :float
     is_private      :boolean
-    parent_rmid     :integer
+    parent_rmid     :integer   
+    MIC             :float
+    MAC             :float
+    MIT             :float
+    MAT             :float
+    Hl              :float
+    Ht              :float
+    Hi              :float
+    initial_action  :boolean
+    final_action    :boolean
+
     timestamps
   end
   attr_accessible :subject, :rmid, :description, :start_date, :due_date, 
@@ -37,8 +47,41 @@ class RedmineIssue < ActiveRecord::Base
   has_many :redmine_issue_custom_fields, :dependent => :destroy, :inverse_of => :redmine_issue
   has_one :redmine_server, :through => :redmine_project, :inverse_of => :redmine_issues
   
+
+  has_many :redmine_issue_event_links, :dependent => :destroy, :inverse_of => :redmine_issue
+  has_many :link_sources, -> { where input_type: false }, :dependent => :destroy, :inverse_of => :redmine_issue, :class_name => 'RedmineIssueEventLink'
+  has_many :link_destinations, -> { where input_type: true }, :dependent => :destroy, :inverse_of => :redmine_issue, :class_name => 'RedmineIssueEventLink'
+  has_many :input_events, :through => :link_sources, :class_name => 'RedmineIssueEvent',
+    :inverse_of => :output_issues
+  has_many :output_events, :through => :link_sources, :class_name => 'RedmineIssueEvent',
+    :inverse_of => :input_issues
+
+  # has_many :precessor_relations, -> {where relation_type: "precedes"}, :class_name => 'RedmineIssueRelation', :foreign_key => :destination_issue_id
+  # has_many :successor_relations, -> {where relation_type: "precedes"}, :class_name => 'RedmineIssueRelation', :foreign_key => :redmine_issue_id
+
   children :redmine_issue_custom_fields, :redmine_issue_relations
   
+  def precessor_relations
+    ret = []
+    self.relation_sources.each { |r|
+      if r.relation_type == "precedes" then
+        ret << r
+      end
+    }
+    return ret
+  end
+  
+  def successor_relations
+    ret = []
+    self.relation_destinations.each { |r|
+      if r.relation_type == "precedes" then
+        ret << r
+      end
+    }
+    return ret
+  end
+
+
   def name
     if self.parent then
       ret = "#"+self.parent.rmid.to_s+":"
@@ -54,38 +97,18 @@ class RedmineIssue < ActiveRecord::Base
   
   def precessor_relations_issue_subjects
     ret = []
-    self.precessor_relations.each { |i|
+    precessor_relations.each { |i|
       ret << i.redmine_issue.subject
     }
     return ret
   end
   
-  def precessor_relations
-    ret = []
-    self.relation_sources.each { |r|
-      if r.relation_type == "precedes" then
-        ret << r
-      end
-    }
-    return ret
-  end  
-  
-  def successor_relations
-    ret = []
-    self.relation_destinations.each { |r|
-      if r.relation_type == "precedes" then
-        ret << r
-      end
-    }
-    return ret
-  end
-  
   def initial_action?
-    self.precessor_relations.size == 0
+    precessor_relations.size == 0
   end
 
   def final_action?
-    self.successor_relations.size == 0
+    successor_relations.size == 0
   end
   
   def duration
@@ -98,7 +121,7 @@ class RedmineIssue < ActiveRecord::Base
   
   def MIC
     mics = [0.0]
-    self.precessor_relations.each{ |r|
+    precessor_relations.each{ |r|
       mics << r.redmine_issue.MIC + r.redmine_issue.duration
     }
     return mics.max
@@ -113,7 +136,7 @@ class RedmineIssue < ActiveRecord::Base
   end
   
   def MAT
-    if self.successor_relations.empty? then
+    if successor_relations.empty? then
       ret = self.MIT
     else
       mats = [0.0]
@@ -128,11 +151,11 @@ class RedmineIssue < ActiveRecord::Base
   def Hl
     # Hl = MIC del suceso posterior - MIC del suceso anterior - duración tarea
     # MIC DE TAREA (“early” de tarea) = MIC de suceso anterior
-    if self.successor_relations.empty? then
+    if successor_relations.empty? then
       ret = self.MIT
     else
       tmp = [0.0]
-      self.successor_relations.each { |r|
+      successor_relations.each { |r|
         tmp << r.destination_issue.MIC
       }
       ret = tmp.max
@@ -155,20 +178,20 @@ class RedmineIssue < ActiveRecord::Base
   def Hi
     # Hi = MIC del suceso posterior - MAC del suceso anterior -duración tarea
     # MAC DE TAREA = MAC de suceso posterior - duración de tarea
-    if self.successor_relations.empty? then
+    if successor_relations.empty? then
       ret = self.MIT
     else
       tmp = [0.0]
-      self.successor_relations.each { |r|
+      successor_relations.each { |r|
         tmp << r.destination_issue.MIC
       }
       ret = tmp.max
     end
     
-    if self.precessor_relations.empty? then
+    if precessor_relations.empty? then
       ret2 = self.MIC
     else    
-      self.precessor_relations.each { |r|
+      precessor_relations.each { |r|
         ret2 = r.redmine_issue.MAT
       }
     end
