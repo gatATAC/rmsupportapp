@@ -63,7 +63,8 @@ gem 'hobo_clean_admin', '2.2.6'
 gem 'acts_as_list'
 gem 'acts_as_tree'
 gem 'roo'
-gem 'redmine_rest', :git => '../redmine_rest', :branch => 'develop'
+#gem 'redmine_rest', :git => 'https://github.com/gatATAC/redmine_rest.git', :branch => 'develop'
+gem 'redmine_rest', :path => '../redmine_rest'
 gem 'activeresource'
 
 ######## To dump database

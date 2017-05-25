@@ -22,9 +22,10 @@ class RedmineServer < ActiveRecord::Base
   has_many :redmine_groups, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_custom_fields, :dependent => :destroy, :inverse_of => :redmine_server
   has_many :redmine_issues, :through => :redmine_projects, :inverse_of => :redmine_server
+  has_many :redmine_versions, :through => :redmine_projects, :inverse_of => :redmine_server 
   
-  children :redmine_projects, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
-    :redmine_roles, :redmine_groups, :redmine_issue_priorities, :redmine_custom_fields
+  children :redmine_projects, :redmine_issue_priorities, :redmine_users, :redmine_trackers, :redmine_issue_statuses, 
+    :redmine_roles, :redmine_groups, :redmine_custom_fields
   
   def help_server_root
     if (self.help_server_url == nil) then
@@ -66,13 +67,15 @@ class RedmineServer < ActiveRecord::Base
   end
   
   def reload_users
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     pending_users = true
     pending_offset = 0
     extra = []
     extra += self.redmine_users
     while (pending_users) do
+      print("\n\n\n\n\n\n\n\n\nbusco users en "+self.url+"\n")
       users = RedmineRest::Models::User.where(offset:pending_offset, order:('id desc'))
       if (users != nil) then
         print("\n\n\n\n\n\n\n\n\ntengo users = "+users.size.to_s)
@@ -114,7 +117,8 @@ class RedmineServer < ActiveRecord::Base
   end
   
   def reload_projects
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     pending_projects = true
     pending_offset = 0
@@ -146,7 +150,7 @@ class RedmineServer < ActiveRecord::Base
               extracfields += rm_project.redmine_project_custom_fields
               project.custom_fields.each{|f|
                 print("\n\nTrato el custom field "+f.name)
-                cf = RedmineCustomField.find_by_rmid(f.id)
+                cf = self.redmine_custom_fields.find_by_rmid(f.id)
                 rm_prj_cfield = rm_project.redmine_project_custom_fields.find_by_redmine_custom_field_id(cf.id)
                 if (not(rm_prj_cfield)) then
                   rm_prj_cfield = RedmineProjectCustomField.new
@@ -180,7 +184,8 @@ class RedmineServer < ActiveRecord::Base
   end
 
   def reload_trackers
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     extra = []
     extra += self.redmine_trackers
@@ -213,7 +218,8 @@ class RedmineServer < ActiveRecord::Base
   end
 
   def reload_roles
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     extra = []
     extra += self.redmine_roles
@@ -244,7 +250,8 @@ class RedmineServer < ActiveRecord::Base
   end
 
   def reload_groups
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     extra = []
     extra += self.redmine_groups
@@ -275,7 +282,8 @@ class RedmineServer < ActiveRecord::Base
   end
 
   def reload_issue_statuses
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     extra = []
     extra += self.redmine_issue_statuses
@@ -337,7 +345,8 @@ class RedmineServer < ActiveRecord::Base
   end
 
   def reload_custom_fields
-    RedmineRest::Models.configure_models apikey:self.admin_api_key, site:self.url
+    RedmineRest::Models.configure_models apikey:self.admin_api_key,
+      site:self.url
     
     extra = []
     extra += self.redmine_custom_fields

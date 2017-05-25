@@ -51,9 +51,9 @@ class RedmineIssue < ActiveRecord::Base
   has_many :redmine_issue_event_links, :dependent => :destroy, :inverse_of => :redmine_issue
   has_many :link_sources, -> { where input_type: false }, :dependent => :destroy, :inverse_of => :redmine_issue, :class_name => 'RedmineIssueEventLink'
   has_many :link_destinations, -> { where input_type: true }, :dependent => :destroy, :inverse_of => :redmine_issue, :class_name => 'RedmineIssueEventLink'
-  has_many :input_events, :through => :link_sources, :class_name => 'RedmineIssueEvent',
+  has_many :input_events, :through => :link_sources, :class_name => 'RedmineIssueEvent', :source => :redmine_issue_event,
     :inverse_of => :output_issues
-  has_many :output_events, :through => :link_sources, :class_name => 'RedmineIssueEvent',
+  has_many :output_events, :through => :link_destinations, :class_name => 'RedmineIssueEvent', :source => :redmine_issue_event,
     :inverse_of => :input_issues
 
   # has_many :precessor_relations, -> {where relation_type: "precedes"}, :class_name => 'RedmineIssueRelation', :foreign_key => :destination_issue_id
@@ -121,48 +121,37 @@ class RedmineIssue < ActiveRecord::Base
   
   def MIC
     mics = [0.0]
-    precessor_relations.each{ |r|
-      mics << r.redmine_issue.MIC + r.redmine_issue.duration
+    self.input_events.each{ |e|
+      mics << e.MIC
     }
     return mics.max
   end
   
   def MAC
-    self.MAT - self.duration
+    return self.MAT - self.duration
   end
   
   def MIT
-    self.MIC + self.duration
+    return self.MIC + self.duration
   end
   
   def MAT
-    if successor_relations.empty? then
-      ret = self.MIT
-    else
-      mats = [0.0]
-      self.successor_relations.each{ |r|
-        mats << r.destination_issue.MAT - r.destination_issue.duration
-      }
-      ret = mats.max
-    end
-    return ret
+    mats = [0.0]
+    self.output_events.each{ |e|
+      mats << e.MAC
+    }
+    return mats.max
   end
   
   def Hl
     # Hl = MIC del suceso posterior - MIC del suceso anterior - duración tarea
     # MIC DE TAREA (“early” de tarea) = MIC de suceso anterior
-    if successor_relations.empty? then
-      ret = self.MIT
-    else
-      tmp = [0.0]
-      successor_relations.each { |r|
-        tmp << r.destination_issue.MIC
-      }
-      ret = tmp.max
-    end
-    ret = ret - self.MIC - self.duration
-    
-    return ret
+    mics = [0.0]
+    self.output_events.each{ |e|
+      mics << e.MIC
+    }
+    micpost = mics.max
+    return micpost - self.MIC -  self.duration
   end
   
 
@@ -170,32 +159,27 @@ class RedmineIssue < ActiveRecord::Base
     #   Ht = MAC del suceso posterior - MIC del suceso anterior - duración tarea
     # MIC DE TAREA (“early” de tarea) = MIC de suceso anterior
     # MAT DE TAREA (“last” de tarea) = MAC de suceso posterior
-    ret = self.MAT - self.MIC - self.duration
+    ret = self.MAC - self.MIC
 
     return ret
   end
   
   def Hi
     # Hi = MIC del suceso posterior - MAC del suceso anterior -duración tarea
-    # MAC DE TAREA = MAC de suceso posterior - duración de tarea
-    if successor_relations.empty? then
-      ret = self.MIT
-    else
-      tmp = [0.0]
-      successor_relations.each { |r|
-        tmp << r.destination_issue.MIC
-      }
-      ret = tmp.max
-    end
+
+    mics = [0.0]
+    self.output_events.each{ |e|
+      mics << e.MIC
+    }
+    micpost = mics.max
     
-    if precessor_relations.empty? then
-      ret2 = self.MIC
-    else    
-      precessor_relations.each { |r|
-        ret2 = r.redmine_issue.MAT
-      }
-    end
-    ret = ret - ret2 - self.duration
+    macs = [111111111111111111111111.0]
+    self.input_events.each{ |e|
+      macs << e.MAC
+    }
+    macant = macs.min
+    
+    ret = micpost - macant - self.duration
     
     return ret
     

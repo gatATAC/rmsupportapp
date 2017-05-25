@@ -94,9 +94,16 @@ class RedmineIssuesController < ApplicationController
     
     roles_list = []
     if (@user) then
+      print @user.to_s+"\n\n"
+      print @project.to_s+"\n\n"
+      print @server.to_s+"\n\n"
+      print @redmine_issue.to_s+"\n\n"
       memb = @user.redmine_memberships.find_by_redmine_project_id(@project.id)
-      @user_roles = memb.redmine_roles
-      roles_list += @user_roles
+      print @memb.to_s+"\n\n"
+      if (@memb != nil) then
+        @user_roles = memb.redmine_roles
+        roles_list += @user_roles
+      end
     else
       @user_roles = nil
     end

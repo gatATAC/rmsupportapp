@@ -15,7 +15,8 @@ class RedmineVersion < ActiveRecord::Base
 
   belongs_to :redmine_project, :creator => :true, :inverse_of => :redmine_versions
   has_many :redmine_issues, :inverse_of => :redmine_version
-
+  has_one :redmine_server, :through => :redmine_project, :inverse_of => :redmine_versions
+  
   # --- Permissions --- #
 
   def create_permitted?

@@ -27,4 +27,4 @@ config/hobo_routes.rb
 
 /.hg
 /.hgignore
-
+/lib/redmine_rest

@@ -24,7 +24,7 @@ class RedmineProject < ActiveRecord::Base
   
   has_many :redmine_project_custom_fields, :dependent => :destroy, :inverse_of => :redmine_project  
   
-  children :redmine_issues, :redmine_versions, :redmine_memberships, :redmine_wikis, :redmine_project_custom_fields, :redmine_issue_events
+  children :redmine_issues, :redmine_project_custom_fields, :redmine_memberships, :redmine_versions, :redmine_wikis, :redmine_issue_events
   
   def name
     identifier
@@ -47,10 +47,10 @@ class RedmineProject < ActiveRecord::Base
   def events 
     ret = []
     # initial event
-    einit = Event.new(self, "Init")
+    einit = Event.new(self, "[-->")
     ret << einit
     # End event
-    eend = Event.new(self, "End")
+    eend = Event.new(self, "-->]")
     ret << eend
 
     self.redmine_issues.each{|i|
@@ -61,19 +61,21 @@ class RedmineProject < ActiveRecord::Base
         # Find any node that could be the origin of this issue
         found = false
         ret.each { |node|
-          node.input_issues.each{|ii|
-            if (ii.successor_relations.collect{|r| r.destination_issue}).include?(i) then
-              node.output_issues << i
-              found = true
-            end
-          }
+          if (not(node.input_issues.include?(i)) and not(node.output_issues.include?(i))) then
+            node.input_issues.each{|ii|
+              if (ii.successor_relations.collect{|r| r.destination_issue}).include?(i) then
+                node.output_issues << i
+                found = true
+              end
+            }
+          end
         }
         if not found then
-          e = Event.new(self, "Inner")
+          e = Event.new(self, "-->")
           e.output_issues << i
           ret << e
         end
-      end     
+      end
       # Connect as input issue
       if (i.final_action?) then
         eend.input_issues << i
@@ -81,27 +83,30 @@ class RedmineProject < ActiveRecord::Base
         # Find any node that could be the end of this issue
         found = false
         ret.each { |node|
-          node.output_issues.each{|ii|
-            if (ii.precessor_relations.collect{|r| r.redmine_issue}).include?(i) then
-              node.input_issues << i
-              found = true
-            end
-          }
+          if (not(node.input_issues.include?(i)) and not(node.output_issues.include?(i))) then
+            node.output_issues.each{|ii|
+              if (ii.precessor_relations.collect{|r| r.redmine_issue}).include?(i) then
+                node.input_issues << i
+                found = true
+              end
+            }
+          end
         }
         if not found then
-          e = Event.new(self, "Inner")
+          e = Event.new(self, "-->")
           e.input_issues << i
           ret << e
         end
       end  
     }
+  
     # Now we have to simplify it, in order to take profit of all the equal inputs
     # or outputs
     ret2 = []
     ret.each { |item|
       unify = false
       input1 = item.input_issues
-      output1 = item.input_issues
+      output1 = item.output_issues
       ret2.each { |item2| 
         input2 = item2.input_issues
         output2 = item2.output_issues
@@ -123,6 +128,7 @@ class RedmineProject < ActiveRecord::Base
         ret2 << item
       end
     }
+
     ret2.each { |item3|
       item3.input_issues.each{ |i|  
         item3.name = i.subject + ":" + item3.name
@@ -131,7 +137,7 @@ class RedmineProject < ActiveRecord::Base
         item3.name = item3.name + ":" + i.subject 
       }
     }
-    
+
     return ret2
   end
   
@@ -217,7 +223,8 @@ class RedmineProject < ActiveRecord::Base
   end
 
   def reload_issues
-    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key,
+      site:self.redmine_server.url
     
     pending_issues = true
     pending_offset = 0
@@ -225,8 +232,15 @@ class RedmineProject < ActiveRecord::Base
     issue_with_parent = []    
     extra = []
     extra += self.redmine_issues
-    while (pending_issues) do
-      issues = RedmineRest::Models::Issue.where(project_id:self.rmid, status_id:"*", offset:pending_offset, order:('id desc'))
+    print ("*** --> path('ifub') = " + RedmineRest::Models::Issue.collection_path(project_id:self.rmid))
+    print ("*** --> prefix = " + RedmineRest::Models::Membership.prefix_source.to_s)
+    while pending_issues do
+      # This is to prevent issues on projects that have not issue tracking
+      begin
+        issues = RedmineRest::Models::Issue.where(project_id:self.rmid, status_id:"*", offset:pending_offset, order:('id desc'))
+      rescue ActiveResource::ForbiddenAccess
+        issues = nil
+      end
       if (issues != nil) then
         print("\n\n\n\n\n\n\n\n\ntengo issues = "+issues.size.to_s+"\n")
         pending_offset += issues.size
@@ -248,15 +262,15 @@ class RedmineProject < ActiveRecord::Base
             rm_issue.due_date = issue.due_date
             rm_issue.done_ratio = issue.done_ratio
             rm_issue.estimated_hours = issue.estimated_hours
-            rm_issue.author = RedmineUser.find_by_rmid(issue.author.id)
+            rm_issue.author = self.redmine_server.redmine_users.find_by_rmid(issue.author.id)
             begin
               assigned_to = issue.assigned_to.id
-              tmp = RedmineUser.find_by_rmid(assigned_to)
+              tmp = self.redmine_server.redmine_users.find_by_rmid(assigned_to)
               if (tmp) then
                 rm_issue.redmine_user = tmp
                 rm_issue.redmine_group = nil
               else
-                tmp = RedmineGroup.find_by_rmid(assigned_to)
+                tmp = self.redmine_server.redmine_groups.find_by_rmid(assigned_to)
                 rm_issue.redmine_group = tmp
                 rm_issue.redmine_user = nil
               end
@@ -264,11 +278,11 @@ class RedmineProject < ActiveRecord::Base
               rm_issue.redmine_user = nil
               rm_issue.redmine_group = nil
             end
-            rm_issue.redmine_tracker = RedmineTracker.find_by_rmid(issue.tracker.id)
-            rm_issue.redmine_issue_status = RedmineIssueStatus.find_by_rmid(issue.status.id)
-            rm_issue.redmine_issue_priority = RedmineIssuePriority.find_by_rmid(issue.priority.id)
+            rm_issue.redmine_tracker = self.redmine_server.redmine_trackers.find_by_rmid(issue.tracker.id)
+            rm_issue.redmine_issue_status = self.redmine_server.redmine_issue_statuses.find_by_rmid(issue.status.id)
+            rm_issue.redmine_issue_priority = self.redmine_server.redmine_issue_priorities.find_by_rmid(issue.priority.id)
             begin
-              rm_issue.redmine_version = RedmineVersion.find_by_rmid(issue.fixed_version.id)
+              rm_issue.redmine_version = self.redmine_server.redmine_versions.find_by_rmid(issue.fixed_version.id)
             rescue ActiveResource::ResourceNotFound
               rm_issue.redmine_version = nil
             end
@@ -286,7 +300,7 @@ class RedmineProject < ActiveRecord::Base
               extracfields += rm_issue.redmine_issue_custom_fields
               issue.custom_fields.each{|f|
                 print("\n\nTrato el custom field "+f.name)
-                cf = RedmineCustomField.find_by_rmid(f.id)
+                cf = self.redmine_server.redmine_custom_fields.find_by_rmid(f.id)
                 rm_issue_cfield = rm_issue.redmine_issue_custom_fields.find_by_redmine_custom_field_id(cf.id)
                 if (not(rm_issue_cfield)) then
                   rm_issue_cfield = RedmineIssueCustomField.new
@@ -339,7 +353,7 @@ class RedmineProject < ActiveRecord::Base
             else
               extra.delete(rm_issue_relation)
             end
-            rm_issue_relation.destination_issue = RedmineIssue.find_by_rmid(relation.issue_to_id)
+            rm_issue_relation.destination_issue = self.redmine_server.redmine_issues.find_by_rmid(relation.issue_to_id)
             rm_issue_relation.delay = relation.delay
             rm_issue_relation.relation_type = relation.relation_type
             rm_issue_relation.save
@@ -360,15 +374,46 @@ class RedmineProject < ActiveRecord::Base
     }
   end
   
+  
+  require 'rubygems'
+  require 'active_resource'    
+  
+  class Model < ActiveResource::Base
+    class << self
+      attr_accessor :apikey
+    end
+
+    def save
+      prefix_options[:apikey] = self.class.apikey
+      super
+    end
+
+    def self.configure_models(site, apikey)
+      self.site = site
+      self.apikey = apikey
+    end
+
+  end
+  
+  # Issue model on the client side
+  class RmMembership < Model
+    self.element_name = "memberships"
+    self.format = ActiveResource::Formats::XmlFormat
+  end
+  
+  
   def reload_memberships
-    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
-    
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key,
+      site:self.redmine_server.url
     pending_members = true
     pending_offset = 0
     extra = []
     extra += self.redmine_memberships
     while (pending_members) do
+      print ("*** --> prefix = " + RedmineRest::Models::Membership.prefix_source.to_s)
+      print ("*** --> path('ifub') = " + RedmineRest::Models::Membership.collection_path(project_id:self.rmid))
       members = RedmineRest::Models::Membership.where(project_id:self.rmid, offset:pending_offset, order:('id desc'))
+      print("membs = "+members.to_s+"\n")
       if (members != nil) then
         print("\n\n\n\n\n\n\n\n\ntengo members1 = "+members.size.to_s+"\n")
         pending_offset += members.size
@@ -385,15 +430,15 @@ class RedmineProject < ActiveRecord::Base
               extra.delete(rm_member)
             end
             begin
-              rm_member.redmine_user = RedmineUser.find_by_rmid(member.user.id)
+              rm_member.redmine_user = self.redmine_server.redmine_users.find_by_rmid(member.user.id)
               rm_member.redmine_group = nil
             rescue ActiveResource::ResourceNotFound
-              rm_member.redmine_group = RedmineGroup.find_by_rmid(member.group.id)
+              rm_member.redmine_group = self.redmine_server.redmine_groups.find_by_rmid(member.group.id)
               rm_member.redmine_user = nil
             end
             if (member.roles) then
               member.roles.each{|f|
-                rol = RedmineRole.find_by_rmid(f.id)
+                rol = self.redmine_server.redmine_roles.find_by_rmid(f.id)
                 if (not(rm_member.redmine_roles.include?(rol))) then
                   rm_member.redmine_roles << rol
                 end
@@ -415,12 +460,14 @@ class RedmineProject < ActiveRecord::Base
   end
 
   def reload_wikis
-    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, 
+      site:self.redmine_server.url
     
     extra = []
     extra += self.redmine_wikis
     wiki_with_parent = []
-    
+    print ("*** --> prefix = " + RedmineRest::Models::Wiki.prefix_source.to_s)
+    print ("*** --> path('ifub') = " + RedmineRest::Models::Wiki.collection_path(project_id:self.rmid))
     wikis = RedmineRest::Models::Wiki.where(project_id:self.rmid)
     if (wikis != nil) then
       if (wikis.size > 0) then
@@ -449,7 +496,7 @@ class RedmineProject < ActiveRecord::Base
             wiki_with_parent << rm_wiki
           end
           begin
-            rm_wiki.redmine_user = RedmineUser.find_by_rmid(wikidetails.author.id)
+            rm_wiki.redmine_user = self.redmine_server.redmine_users.find_by_rmid(wikidetails.author.id)
           rescue ActiveResource::ResourceNotFound
             rm_wiki.redmine_user = nil
           end
@@ -468,12 +515,19 @@ class RedmineProject < ActiveRecord::Base
   end
 
   def reload_versions
-    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key, site:self.redmine_server.url
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key,
+      site:self.redmine_server.url
     
     extra = []
     extra += self.redmine_versions
-    
-    versions = RedmineRest::Models::Version.where(project_id:self.rmid)
+    print ("*** --> prefix = " + RedmineRest::Models::Version.prefix_source.to_s)
+    print ("*** --> path('ifub') = " + RedmineRest::Models::Version.collection_path(project_id:self.rmid))
+    # This is to prevent issues on projects that have not issue tracking
+    begin
+      versions = RedmineRest::Models::Version.where(project_id:self.rmid)
+    rescue ActiveResource::ForbiddenAccess
+      versions = nil
+    end
     if (versions != nil) then
       if (versions.size > 0) then
         print("\ntengo versions = "+versions.size.to_s)
