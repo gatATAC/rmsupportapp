@@ -222,6 +222,97 @@ class RedmineProject < ActiveRecord::Base
     self.calculate_metrics
   end
 
+  def reload_rm_issue(rm_issue, issue = nil, issue_with_parent = nil)
+    if (issue == nil) then
+    RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key,
+      site:self.redmine_server.url
+      issues = RedmineRest::Models::Issue.where(issue_id:rm_issue.rmid)
+      if (issues != nil) then
+        issue = issues.first
+      end
+    end
+    rm_issue.subject = issue.subject
+    rm_issue.description = issue.description
+    rm_issue.start_date = issue.start_date
+    rm_issue.due_date = issue.due_date
+    rm_issue.done_ratio = issue.done_ratio
+    rm_issue.estimated_hours = issue.estimated_hours
+    rm_issue.author = self.redmine_server.redmine_users.find_by_rmid(issue.author.id)
+    begin
+      assigned_to = issue.assigned_to.id
+      tmp = self.redmine_server.redmine_users.find_by_rmid(assigned_to)
+      if (tmp) then
+        rm_issue.redmine_user = tmp
+        rm_issue.redmine_group = nil
+      else
+        tmp = self.redmine_server.redmine_groups.find_by_rmid(assigned_to)
+        rm_issue.redmine_group = tmp
+        rm_issue.redmine_user = nil
+      end
+    rescue ActiveResource::ResourceNotFound
+      rm_issue.redmine_user = nil
+      rm_issue.redmine_group = nil
+    end
+    rm_issue.redmine_tracker = self.redmine_server.redmine_trackers.find_by_rmid(issue.tracker.id)
+    rm_issue.redmine_issue_status = self.redmine_server.redmine_issue_statuses.find_by_rmid(issue.status.id)
+    rm_issue.redmine_issue_priority = self.redmine_server.redmine_issue_priorities.find_by_rmid(issue.priority.id)
+    begin
+      rm_issue.redmine_version = self.redmine_server.redmine_versions.find_by_rmid(issue.fixed_version.id)
+    rescue ActiveResource::ResourceNotFound
+      rm_issue.redmine_version = nil
+    end
+    rm_issue.is_private = issue.is_private.to_sym
+            
+    begin
+      rm_issue.parent_rmid = issue.parent.id
+      if (issue_with_parent) then
+        issue_with_parent << rm_issue
+      end
+    rescue ActiveResource::ResourceNotFound
+      rm_issue.parent_rmid = nil           
+    end
+            
+    if (issue.custom_fields) then
+      extracfields = []
+      extracfields += rm_issue.redmine_issue_custom_fields
+      issue.custom_fields.each{|f|
+        print("\n\nTrato el custom field "+f.name)
+        cf = self.redmine_server.redmine_custom_fields.find_by_rmid(f.id)
+        rm_issue_cfield = rm_issue.redmine_issue_custom_fields.find_by_redmine_custom_field_id(cf.id)
+        if (not(rm_issue_cfield)) then
+          rm_issue_cfield = RedmineIssueCustomField.new
+          rm_issue_cfield.redmine_issue = rm_issue
+          rm_issue_cfield.redmine_custom_field = cf
+        else
+          extracfields.delete(rm_issue_cfield)
+        end
+        rm_issue_cfield.cfield_name = f.name
+        rm_issue_cfield.value = f.value
+        rm_issue_cfield.save
+      }
+      extracfields.each{|ecf|
+        ecf.delete
+      }
+    end
+    rm_issue.save
+  end
+  
+  def reload_issue(issue, extra = nil, issue_with_parent = nil)
+    print("\ntrato la issue "+issue.id.to_s)
+    rm_issue = self.redmine_issues.find_by_rmid(issue.id)
+    if (not(rm_issue)) then
+      rm_issue = RedmineIssue.new
+      rm_issue.rmid = issue.id
+      rm_issue.redmine_project = self
+    else
+      if (extra) then
+        extra.delete(rm_issue)
+      end
+    end
+    self.reload_rm_issue(rm_issue, issue, issue_with_parent)
+    return rm_issue
+  end
+  
   def reload_issues
     RedmineRest::Models.configure_models apikey:self.redmine_server.admin_api_key,
       site:self.redmine_server.url
@@ -242,83 +333,13 @@ class RedmineProject < ActiveRecord::Base
         issues = nil
       end
       if (issues != nil) then
-        print("\n\n\n\n\n\n\n\n\ntengo issues = "+issues.size.to_s+"\n")
         pending_offset += issues.size
         if (issues.size > 0) then
-          print("\ntengo issues2 = "+issues.size.to_s)
           issues.each do |issue|
-            print("\ntrato la issue "+issue.id.to_s)
-            rm_issue = self.redmine_issues.find_by_rmid(issue.id)
-            if (not(rm_issue)) then
-              rm_issue = RedmineIssue.new
-              rm_issue.rmid = issue.id
-              rm_issue.redmine_project = self
-            else
-              extra.delete(rm_issue)
+            if (issue.project.id.to_i == self.rmid.to_i) then
+              rm_issue = self.reload_issue(issue, extra, issue_with_parent)
+              processed_issues << rm_issue
             end
-            rm_issue.subject = issue.subject
-            rm_issue.description = issue.description
-            rm_issue.start_date = issue.start_date
-            rm_issue.due_date = issue.due_date
-            rm_issue.done_ratio = issue.done_ratio
-            rm_issue.estimated_hours = issue.estimated_hours
-            rm_issue.author = self.redmine_server.redmine_users.find_by_rmid(issue.author.id)
-            begin
-              assigned_to = issue.assigned_to.id
-              tmp = self.redmine_server.redmine_users.find_by_rmid(assigned_to)
-              if (tmp) then
-                rm_issue.redmine_user = tmp
-                rm_issue.redmine_group = nil
-              else
-                tmp = self.redmine_server.redmine_groups.find_by_rmid(assigned_to)
-                rm_issue.redmine_group = tmp
-                rm_issue.redmine_user = nil
-              end
-            rescue ActiveResource::ResourceNotFound
-              rm_issue.redmine_user = nil
-              rm_issue.redmine_group = nil
-            end
-            rm_issue.redmine_tracker = self.redmine_server.redmine_trackers.find_by_rmid(issue.tracker.id)
-            rm_issue.redmine_issue_status = self.redmine_server.redmine_issue_statuses.find_by_rmid(issue.status.id)
-            rm_issue.redmine_issue_priority = self.redmine_server.redmine_issue_priorities.find_by_rmid(issue.priority.id)
-            begin
-              rm_issue.redmine_version = self.redmine_server.redmine_versions.find_by_rmid(issue.fixed_version.id)
-            rescue ActiveResource::ResourceNotFound
-              rm_issue.redmine_version = nil
-            end
-            rm_issue.is_private = issue.is_private.to_sym
-            
-            begin
-              rm_issue.parent_rmid = issue.parent.id            
-              issue_with_parent << rm_issue
-            rescue ActiveResource::ResourceNotFound
-              rm_issue.parent_rmid = nil           
-            end
-            
-            if (issue.custom_fields) then
-              extracfields = []
-              extracfields += rm_issue.redmine_issue_custom_fields
-              issue.custom_fields.each{|f|
-                print("\n\nTrato el custom field "+f.name)
-                cf = self.redmine_server.redmine_custom_fields.find_by_rmid(f.id)
-                rm_issue_cfield = rm_issue.redmine_issue_custom_fields.find_by_redmine_custom_field_id(cf.id)
-                if (not(rm_issue_cfield)) then
-                  rm_issue_cfield = RedmineIssueCustomField.new
-                  rm_issue_cfield.redmine_issue = rm_issue
-                  rm_issue_cfield.redmine_custom_field = cf
-                else
-                  extracfields.delete(rm_issue_cfield)
-                end
-                rm_issue_cfield.cfield_name = f.name
-                rm_issue_cfield.value = f.value
-                rm_issue_cfield.save
-              }
-              extracfields.each{|ecf|
-                ecf.delete
-              }
-            end
-            rm_issue.save
-            processed_issues << rm_issue
           end
         else
           pending_issues = false

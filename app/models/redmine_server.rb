@@ -63,7 +63,7 @@ class RedmineServer < ActiveRecord::Base
     self.reload_custom_fields
     self.reload_groups
     self.reload_users
-    self.reload_projects
+    self.reload_projects(true)
   end
   
   def reload_users
@@ -116,7 +116,7 @@ class RedmineServer < ActiveRecord::Base
     return nil
   end
   
-  def reload_projects
+  def reload_projects(reload_project_contents)
     RedmineRest::Models.configure_models apikey:self.admin_api_key,
       site:self.url
     
@@ -167,8 +167,10 @@ class RedmineServer < ActiveRecord::Base
                 ecf.delete
               }
             end
-            
             rm_project.save
+            if (reload_project_contents) then
+              rm_project.reload_all
+            end
           end
         else
           pending_projects = false

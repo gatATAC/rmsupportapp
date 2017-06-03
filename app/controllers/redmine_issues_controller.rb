@@ -84,8 +84,8 @@ class RedmineIssuesController < ApplicationController
   
   def help
     @redmine_issue = find_instance
-    @redmine_issue.redmine_project.reload_all
-    @redmine_issue.redmine_server.reload_all
+    @redmine_issue.redmine_project.reload_rm_issue(@redmine_issue)
+    #@redmine_issue.redmine_server.reload_all
     @user = @redmine_issue.redmine_user
     @group = @redmine_issue.redmine_group
     @project = @redmine_issue.redmine_project

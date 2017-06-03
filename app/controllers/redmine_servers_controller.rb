@@ -23,7 +23,7 @@ class RedmineServersController < ApplicationController
       if (@issue != nil) then
         redirect_to controller: 'redmine_issues', action: 'help', id: @issue.id
       end
-    end        
+    end
   end
 
   def reload_all
@@ -70,7 +70,7 @@ class RedmineServersController < ApplicationController
   
   def reload_projects
     @redmine_server = find_instance
-    @redmine_server.reload_projects
+    @redmine_server.reload_projects(false)
     redirect_to this
   end  
 
