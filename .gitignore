@@ -23,7 +23,7 @@ config/hobo_routes.rb
 
 /db/production.sqlite3
 /passenger.*.pid.lock
-/public/assets/
+#/public/assets/
 
 /.hg
 /.hgignore
